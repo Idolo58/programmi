@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Countdown Meridiano Sud – Sole e Luna</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=zodiak@500,700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --bg:#f7f6f2; --surface:#f9f8f5; --surface-2:#ffffff; --border:#d4d1ca; --text:#28251d; --muted:#6f6d67;
+      --primary:#01696f; --primary-2:#0c4e54; --accent:#b85c38; --ok:#437a22; --warn:#964219;
+      --shadow:0 10px 30px rgba(40,37,29,.08); --radius:20px;
+      --font-body:'Satoshi', system-ui, sans-serif; --font-display:'Zodiak', Georgia, serif;
+    }
+    [data-theme="dark"] {
+      --bg:#171614; --surface:#1c1b19; --surface-2:#22211f; --border:#393836; --text:#e7e2d8; --muted:#a6a096;
+      --primary:#4f98a3; --primary-2:#75b2bb; --accent:#e09d76; --ok:#85b76a; --warn:#d59a72;
+      --shadow:0 10px 30px rgba(0,0,0,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; font-family:var(--font-body); background:linear-gradient(180deg,var(--bg),var(--surface)); color:var(--text);
+      line-height:1.55;
+    }
+    .wrap { max-width:1200px; margin:0 auto; padding:24px; }
+    .topbar {
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:20px;
+    }
+    .brand { display:flex; align-items:center; gap:14px; }
+    .logo {
+      width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--surface-2);
+      display:grid; place-items:center; box-shadow:var(--shadow);
+    }
+    .logo svg { width:28px; height:28px; }
+    h1 { margin:0; font-family:var(--font-display); font-size:clamp(2rem,4vw,3.6rem); line-height:1.05; }
+    .sub { margin-top:6px; color:var(--muted); max-width:72ch; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; }
+    button, select {
+      font:inherit; color:inherit; background:var(--surface-2); border:1px solid var(--border); border-radius:999px;
+      padding:12px 16px; cursor:pointer;
+    }
+    button.primary { background:var(--primary); color:#fff; border-color:transparent; }
+    .hero {
+      background:var(--surface); border:1px solid var(--border); border-radius:28px; padding:24px; box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+    .hero-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:18px; }
+    .note, .legend, .city-card {
+      background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    }
+    .note, .legend { padding:18px; }
+    .legend ul { margin:10px 0 0; padding-left:18px; }
+    .meta {
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px;
+    }
+    .pill { border:1px solid var(--border); background:var(--surface-2); border-radius:18px; padding:12px 14px; }
+    .cities {
+      display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px;
+    }
+    .city-card { padding:18px; }
+    .city-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .city-name { font-size:1.35rem; font-weight:700; }
+    .coords { color:var(--muted); font-size:.95rem; }
+    .grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .event {
+      border:1px solid var(--border); border-radius:18px; padding:14px; background:linear-gradient(180deg,var(--surface),var(--surface-2));
+    }
+    .event h3 { margin:0 0 10px; font-size:1rem; }
+    .time { font-size:1.55rem; font-weight:700; letter-spacing:.02em; }
+    .count { font-variant-numeric:tabular-nums; margin-top:6px; color:var(--primary); font-weight:700; }
+    .status { margin-top:6px; color:var(--muted); font-size:.95rem; }
+    .badge {
+      display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:8px 12px; font-size:.85rem;
+      background:rgba(1,105,111,.10); color:var(--primary); border:1px solid rgba(1,105,111,.20);
+    }
+    .footer { margin-top:18px; color:var(--muted); font-size:.94rem; }
+    @media (max-width:900px){
+      .hero-grid,.cities,.grid2,.meta { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6">
+            <circle cx="32" cy="32" r="24" opacity=".28"></circle>
+            <path d="M32 8v48"></path>
+            <path d="M14 32h36"></path>
+            <path d="M32 12c8 6 12 12 12 20s-4 14-12 20c-8-6-12-12-12-20s4-14 12-20Z" stroke="var(--accent)"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 data-i18n="title">Countdown meridiano sud di Sole e Luna</h1>
+          <p class="sub" data-i18n="subtitle">Ogni riquadro mostra l'ora locale esatta del prossimo transito al meridiano sud per Sole e Luna e il conto alla rovescia aggiornato in tempo reale.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="langBtn" class="primary" type="button">English</button>
+        <button id="themeBtn" type="button" aria-label="Tema">🌙</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="note">
+          <div class="badge" data-i18n="live">Aggiornamento continuo</div>
+          <p style="margin:14px 0 0" data-i18n="intro1">Il Sole raggiunge il meridiano sud al mezzogiorno vero locale; la Luna raggiunge il meridiano sud al proprio passaggio superiore quotidiano.</p>
+          <div class="meta">
+            <div class="pill"><strong data-i18n="today">Data</strong><br><span id="todayLine"></span></div>
+            <div class="pill"><strong data-i18n="tz">Fuso</strong><br><span id="tzLine"></span></div>
+            <div class="pill"><strong data-i18n="refresh">Aggiornamento</strong><br><span data-i18n="second">ogni secondo</span></div>
+          </div>
+        </div>
+        <div class="legend">
+          <strong data-i18n="included">Località incluse</strong>
+          <ul>
+            <li>San Giorgio del Sannio (BN)</li>
+            <li>Napoli</li>
+            <li>Genova</li>
+            <li>Roma</li>
+            <li>Palermo</li>
+            <li>Milano</li>
+            <li>Cagliari</li>
+            <li>Torino</li>
+          </ul>
+          <p style="margin-top:12px" data-i18n="intro2">Le ore dipendono dalla longitudine geografica e dall'equazione del tempo; per la Luna il passaggio cambia ogni giorno in modo più marcato.</p>
+        </div>
+      </div>
+    </section>
+
+    <main class="cities" id="cities"></main>
+
+    <p class="footer" data-i18n="footer">realizzato con I.A su progetto dr. Idolo Tedesco (idolo1958).</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/suncalc3@2.0.5/suncalc.min.js"></script>
+  <script>
+    const CITIES = [
+      { key:'sangiorgio', nameIT:'San Giorgio del Sannio (BN)', nameEN:'San Giorgio del Sannio (BN)', lat:41.067389, lng:14.855222 },
+      { key:'napoli', nameIT:'Napoli', nameEN:'Naples', lat:40.850000, lng:14.283333 },
+      { key:'genova', nameIT:'Genova', nameEN:'Genoa', lat:44.416667, lng:8.950000 },
+      { key:'roma', nameIT:'Roma', nameEN:'Rome', lat:41.900000, lng:12.483333 },
+      { key:'palermo', nameIT:'Palermo', nameEN:'Palermo', lat:38.116667, lng:13.366667 },
+      { key:'milano', nameIT:'Milano', nameEN:'Milan', lat:45.466667, lng:9.200000 },
+      { key:'cagliari', nameIT:'Cagliari', nameEN:'Cagliari', lat:39.216667, lng:9.116667 },
+      { key:'torino', nameIT:'Torino', nameEN:'Turin', lat:45.050000, lng:7.666667 }
+    ];
+
+    const I18N = {
+      it: {
+        title:'Countdown meridiano sud di Sole e Luna',
+        subtitle:'Ogni riquadro mostra l\'ora locale esatta del prossimo transito al meridiano sud per Sole e Luna e il conto alla rovescia aggiornato in tempo reale.',
+        live:'Aggiornamento continuo',
+        intro1:'Il Sole raggiunge il meridiano sud al mezzogiorno vero locale; la Luna raggiunge il meridiano sud al proprio passaggio superiore quotidiano.',
+        today:'Data',
+        tz:'Fuso',
+        refresh:'Aggiornamento',
+        second:'ogni secondo',
+        included:'Località incluse',
+        intro2:'Le ore dipendono dalla longitudine geografica e dall\'equazione del tempo; per la Luna il passaggio cambia ogni giorno in modo più marcato.',
+        footer:'Realizzato con I.A su progetto di idolo tedesco (idolo1958).',
+        sun:'Sole',
+        moon:'Luna',
+        nextSouth:'Prossimo meridiano sud',
+        countdown:'Mancano',
+        coords:'Coordinate',
+        invalidMoon:'Transito lunare non disponibile nel calcolo del giorno, ricalcolo automatico.',
+        localTime:'Ora locale',
+        language:'English'
+      },
+      en: {
+        title:'South meridian countdown for Sun and Moon',
+        subtitle:'Each panel shows the exact local time of the next south-meridian transit for the Sun and the Moon, plus a live countdown.',
+        live:'Live update',
+        intro1:'The Sun reaches the south meridian at true local noon; the Moon reaches the south meridian at its daily upper transit.',
+        today:'Date',
+        tz:'Time zone',
+        refresh:'Refresh',
+        second:'every second',
+        included:'Included locations',
+        intro2:'Times depend on geographic longitude and the equation of time; for the Moon, the transit shifts more strongly from day to day.',
+        footer:'Standalone HTML page: you can copy it into an index.html file, publish it on GitHub Pages, and use it through a public QR code.',
+        sun:'Sun',
+        moon:'Moon',
+        nextSouth:'Next south meridian',
+        countdown:'Time left',
+        coords:'Coordinates',
+        invalidMoon:'Moon transit not available for the computed day, automatic recalculation in progress.',
+        localTime:'Local time',
+        language:'Italiano'
+      }
+    };
+
+    let lang = 'it';
+    let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
+
+    const cityContainer = document.getElementById('cities');
+
+    function fmtDate(date){
+      return new Intl.DateTimeFormat(lang === 'it' ? 'it-IT' : 'en-GB', {
+        dateStyle:'full',
+        timeZone:'Europe/Rome'
+      }).format(date);
+    }
+
+    function fmtTime(date){
+      return new Intl.DateTimeFormat(lang === 'it' ? 'it-IT' : 'en-GB', {
+        hour:'2-digit',
+        minute:'2-digit',
+        second:'2-digit',
+        hour12:false,
+        timeZone:'Europe/Rome'
+      }).format(date);
+    }
+
+    function fmtCoord(v, pos, neg){
+      const d = Math.abs(v);
+      const deg = Math.floor(d);
+      const min = (d - deg) * 60;
+      return `${deg}° ${min.toFixed(2)}′ ${v >= 0 ? pos : neg}`;
+    }
+
+    function countdownString(ms){
+      if (ms < 0) ms = 0;
+      const s = Math.floor(ms / 1000);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+    }
+
+    function nextSunTransit(now, lat, lng){
+      for(let i = 0; i < 4; i++){
+        const probe = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12, 0, 0, 0);
+        const res = SunCalc.getSunTimes(probe, lat, lng);
+        if (res && res.solarNoon && res.solarNoon.value instanceof Date) {
+          const t = res.solarNoon.value;
+          if (t > now) return t;
+        }
+      }
+      return null;
+    }
+
+    function collectMoonTransitCandidates(baseDate, lat, lng){
+      const candidates = [];
+      for(let offset = -1; offset <= 4; offset++){
+        const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + offset, 12, 0, 0, 0);
+        const mt = SunCalc.getMoonTimes(d, lat, lng);
+        const rise = mt.rise instanceof Date && !isNaN(mt.rise) ? mt.rise : null;
+        const setv = mt.set instanceof Date && !isNaN(mt.set) ? mt.set : null;
+        if (rise && setv) {
+          const tr = SunCalc.moonTransit(rise, setv, lat, lng);
+          [tr.main, tr.invert].forEach(val => {
+            if (val instanceof Date && !isNaN(val)) candidates.push(val);
+          });
+        }
+      }
+      return candidates
+        .filter(d => d instanceof Date && !isNaN(d))
+        .sort((a,b) => a - b);
+    }
+
+    function nextMoonTransit(now, lat, lng){
+      const list = collectMoonTransitCandidates(now, lat, lng);
+      return list.find(d => d > now) || null;
+    }
+
+    function renderCards(){
+      cityContainer.innerHTML = CITIES.map(city => `
+        <section class="city-card" id="card-${city.key}">
+          <div class="city-head">
+            <div>
+              <div class="city-name">${lang==='it' ? city.nameIT : city.nameEN}</div>
+              <div class="coords">${I18N[lang].coords}: ${fmtCoord(city.lat,'N','S')} · ${fmtCoord(city.lng,'E','W')}</div>
+            </div>
+            <div class="badge">${I18N[lang].localTime}: <span data-role="now"></span></div>
+          </div>
+          <div class="grid2">
+            <article class="event">
+              <h3>${I18N[lang].sun}</h3>
+              <div class="time" data-role="sun-time">--:--:--</div>
+              <div class="count" data-role="sun-count">--</div>
+              <div class="status" data-role="sun-status"></div>
+            </article>
+            <article class="event">
+              <h3>${I18N[lang].moon}</h3>
+              <div class="time" data-role="moon-time">--:--:--</div>
+              <div class="count" data-role="moon-count">--</div>
+              <div class="status" data-role="moon-status"></div>
+            </article>
+          </div>
+        </section>
+      `).join('');
+    }
+
+    function updateStaticText(){
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = I18N[lang][el.dataset.i18n];
+      });
+      document.getElementById('langBtn').textContent = I18N[lang].language;
+      document.getElementById('todayLine').textContent = fmtDate(new Date());
+      document.getElementById('tzLine').textContent = 'Europe/Rome';
+    }
+
+    function updateAll(){
+      const now = new Date();
+      document.getElementById('todayLine').textContent = fmtDate(now);
+
+      CITIES.forEach(city => {
+        const card = document.getElementById(`card-${city.key}`);
+        if(!card) return;
+
+        card.querySelector('[data-role="now"]').textContent = fmtTime(now);
+
+        const sunDate = nextSunTransit(now, city.lat, city.lng);
+        if (sunDate) {
+          card.querySelector('[data-role="sun-time"]').textContent = fmtTime(sunDate);
+          card.querySelector('[data-role="sun-count"]').textContent = `${I18N[lang].countdown}: ${countdownString(sunDate - now)}`;
+          card.querySelector('[data-role="sun-status"]').textContent = `${I18N[lang].nextSouth} · ${fmtDate(sunDate)}`;
+        }
+
+        const moonDate = nextMoonTransit(now, city.lat, city.lng);
+        if (moonDate) {
+          card.querySelector('[data-role="moon-time"]').textContent = fmtTime(moonDate);
+          card.querySelector('[data-role="moon-count"]').textContent = `${I18N[lang].countdown}: ${countdownString(moonDate - now)}`;
+          card.querySelector('[data-role="moon-status"]').textContent = `${I18N[lang].nextSouth} · ${fmtDate(moonDate)}`;
+        } else {
+          card.querySelector('[data-role="moon-time"]').textContent = '--:--:--';
+          card.querySelector('[data-role="moon-count"]').textContent = '--';
+          card.querySelector('[data-role="moon-status"]').textContent = I18N[lang].invalidMoon;
+        }
+      });
+    }
+
+    document.getElementById('langBtn').addEventListener('click', () => {
+      lang = lang === 'it' ? 'en' : 'it';
+      renderCards();
+      updateStaticText();
+      updateAll();
+    });
+
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
+    });
+
+    renderCards();
+    updateStaticText();
+    updateAll();
+    setInterval(updateAll, 1000);
+  </script>
+</body>
+</html>
