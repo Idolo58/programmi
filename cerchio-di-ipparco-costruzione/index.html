@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Cerchio di Ipparco - Custom</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; padding: 20px; max-width: 700px; margin: auto; background-color: #f0f2f5; color: #333; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { color: #1a5f7a; text-align: center; border-bottom: 2px solid #1a5f7a; padding-bottom: 10px; }
+        .input-group { margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input[type="number"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ced4da; font-size: 16px; box-sizing: border-box; }
+        .results { background: #e3f2fd; padding: 20px; border-left: 5px solid #2196f3; border-radius: 8px; margin-top: 25px; }
+        .res-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #bbdefb; padding-bottom: 5px; }
+        .formula-note { font-size: 0.8em; color: #666; font-family: monospace; }
+        .geo-box { background: #fff3e0; padding: 15px; border-radius: 8px; font-size: 0.95em; border: 1px solid #ffe0b2; }
+        .warning { color: #d32f2f; font-weight: bold; background: #ffcdd2; padding: 5px; border-radius: 4px; display: none; margin-top: 10px; }
+        footer { text-align: center; margin-top: 40px; font-size: 1.3em; color: #d32f2f; font-weight: bold; }
+        .lang-btn { background: #1a5f7a; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-left: 5px; }
+        .header-controls { display: flex; justify-content: flex-end; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="header-controls">
+    <button class="lang-btn" onclick="switchLang('it')">Italiano</button>
+    <button class="lang-btn" onclick="switchLang('en')">English</button>
+</div>
+
+<div class="card">
+    <h1 id="title">Cerchio di Ipparco</h1>
+    <p style="text-align: center; font-style: italic;">Latitudine: 41.07° N (San Giorgio del Sannio)</p>
+    
+    <div class="input-group">
+        <label id="label-hc">Inserisci Altezza Piede Corto (h<sub>c</sub>) in cm:</label>
+        <input type="number" id="hc" value="3" step="0.1" oninput="calculate()">
+    </div>
+
+    <div class="input-group">
+        <label id="label-d">Inserisci Diametro Cerchio (D) in cm:</label>
+        <input type="number" id="d" value="9" step="0.1" oninput="calculate()">
+        <div id="a4-warning" class="warning">⚠️ Attenzione: supera i 29,4 cm (Foglio A4)!</div>
+    </div>
+
+    <div class="results" id="results"></div>
+
+    <h2 id="title-geo">Promemoria Formule</h2>
+    <div class="geo-box" id="geo-info"></div>
+</div>
+
+<footer>
+    realizzato con l'I.A. su progetto di idolo tedesco (idolo1958-Instagram). San Giorgio del Sannio
+</footer>
+
+<script>
+    let currentLang = 'it';
+    const A = 3; 
+    const LAT = 41.07; 
+    const RAD = LAT * (Math.PI / 180);
+
+    const translations = {
+        it: {
+            title: "Costruzione Cerchio di Ipparco",
+            labelHc: "Altezza Piede Corto (hc) in cm:",
+            labelD: "Diametro Cerchio (D) in cm:",
+            resTitle: "Risultati per il montaggio:",
+            distPiedi: "Distanza tra i piedi",
+            diffQuota: "Differenza di quota",
+            altPiedeLungo: "Altezza Piede Lungo",
+            sforamento: "Sforamento oltre il piede",
+            distTot: "Distanza Totale dal bordo",
+            geoTitle: "Promemoria Geometria",
+            geoFormula: "<b>Circonferenza (C):</b> &pi; &times; D<br><b>Raggio (r):</b> D / 2",
+            striscia: "Lunghezza striscia di carta (C + 1cm colla):",
+            noteA: "Distanza margine (A) fissa: 3 cm",
+            warnA4: "⚠️ Supera i 29,4 cm (Limite A4)!"
+        },
+        en: {
+            title: "Hipparchus Circle Construction",
+            labelHc: "Short Foot Height (hc) in cm:",
+            labelD: "Circle Diameter (D) in cm:",
+            resTitle: "Assembly Results:",
+            distPiedi: "Distance between feet",
+            diffQuota: "Height difference",
+            altPiedeLungo: "Long Foot Height",
+            sforamento: "Overshoot beyond foot",
+            distTot: "Total distance from edge",
+            geoTitle: "Geometry Reminder",
+            geoFormula: "<b>Circumference (C):</b> &pi; &times; D<br><b>Radius (r):</b> D / 2",
+            striscia: "Paper strip length (C + 1cm glue):",
+            noteA: "Fixed margin distance (A): 3 cm",
+            warnA4: "⚠️ Exceeds 29.4 cm (A4 Limit)!"
+        }
+    };
+
+    function switchLang(lang) {
+        currentLang = lang;
+        document.getElementById('a4-warning').innerText = translations[currentLang].warnA4;
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('title').innerText = translations[currentLang].title;
+        document.getElementById('label-hc').innerText = translations[currentLang].labelHc;
+        document.getElementById('label-d').innerText = translations[currentLang].labelD;
+        document.getElementById('title-geo').innerText = translations[currentLang].geoTitle;
+        calculate();
+    }
+
+    function calculate() {
+        const hc = parseFloat(document.getElementById('hc').value) || 0;
+        const D = parseFloat(document.getElementById('d').value) || 0;
+
+        const Dd = (D * Math.sin(RAD)).toFixed(2);
+        const deltaH = (D * Math.cos(RAD)).toFixed(2);
+        const hl = (hc + parseFloat(deltaH)).toFixed(2);
+        const Linv = 1.5 * D;
+        const S = ((Linv - D) / 2).toFixed(2);
+        const distTotale = (A + parseFloat(Dd) + parseFloat(S)).toFixed(2);
+        
+        const C = (Math.PI * D).toFixed(2);
+        const striscia = (parseFloat(C) + 1).toFixed(2);
+
+        // Controllo limite A4
+        const warning = document.getElementById('a4-warning');
+        if (striscia > 29.4) {
+            warning.style.display = 'block';
+        } else {
+            warning.style.display = 'none';
+        }
+
+        let resHtml = `<h3>${translations[currentLang].resTitle}</h3>`;
+        resHtml += `<div class="res-row"><span>${translations[currentLang].distPiedi}:</span> <span><b>${Dd} cm</b> <span class="formula-note">(D·sen&phi;)</span></span></div>`;
+        resHtml += `<div class="res-row"><span>${translations[currentLang].diffQuota}:</span> <span><b>${deltaH} cm</b> <span class="formula-note">(D·cos&phi;)</span></span></div>`;
+        resHtml += `<div class="res-row"><span>${translations[currentLang].altPiedeLungo}:</span> <span><b>${hl} cm</b> <span class="formula-note">(hc+&Delta;h)</span></span></div>`;
+        resHtml += `<div class="res-row"><span>${translations[currentLang].sforamento}:</span> <span><b>${S} cm</b> <span class="formula-note">((1.5D-D)/2)</span></span></div>`;
+        resHtml += `<div class="res-row" style="border:none; color:#d32f2f"><span>${translations[currentLang].distTot}:</span> <span><b>${distTotale} cm</b></span></div>`;
+        
+        document.getElementById('results').innerHTML = resHtml;
+
+        let geoHtml = translations[currentLang].geoFormula;
+        geoHtml += `<br><br><strong>${translations[currentLang].striscia}</strong> <span style="color:${striscia > 29.4 ? '#d32f2f' : '#2e7d32'}; font-size:1.2em">${striscia} cm</span>`;
+        geoHtml += `<br><small>(${translations[currentLang].noteA})</small>`;
+        
+        document.getElementById('geo-info').innerHTML = geoHtml;
+    }
+
+    updateUI();
+</script>
+
+</body>
+</html>
