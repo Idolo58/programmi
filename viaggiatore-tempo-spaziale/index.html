@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esplorazione Spaziale - Calcolatore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #030509;
+            --card: #12161d;
+            --accent: #00d2ff;
+            --text: #ffffff;
+            --secondary: #8b949e;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container { width: 90%; max-width: 1200px; padding: 40px 20px; text-align: center; }
+        .lang-switch { position: absolute; top: 20px; right: 20px; }
+        button { 
+            background: var(--accent); border: none; padding: 12px 24px; 
+            border-radius: 30px; cursor: pointer; font-weight: bold; color: #000;
+            transition: 0.3s;
+        }
+        button:hover { opacity: 0.8; transform: scale(1.05); }
+        .panel {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        input, select {
+            padding: 15px; margin: 10px; border-radius: 10px; border: 1px solid #444;
+            background: #1c2128; color: white; width: 220px; font-size: 1rem;
+        }
+        .examples {
+            font-size: 0.9rem; color: var(--secondary); margin-top: 20px;
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #30363d;
+            transition: 0.3s;
+        }
+        .card:hover { border-color: var(--accent); background: #161b22; }
+        .card i { font-size: 2.5rem; color: var(--accent); margin-bottom: 15px; display: block; }
+        .name { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; }
+        .time { font-size: 1.4rem; font-weight: bold; color: #00ff88; }
+        .dist { font-size: 0.8rem; color: var(--secondary); margin-top: 5px; }
+        footer { margin-top: auto; padding: 50px 0; font-size: 1.2rem; }
+        .heart { color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+<div class="lang-switch">
+    <button onclick="toggleLang()" id="btnLang">English Version</button>
+</div>
+
+<div class="container">
+    <h1 id="t-title">Viaggiatore del Tempo Spaziale</h1>
+    <p id="t-sub">Scopri quanto tempo impiegheresti per raggiungere i confini dell'universo</p>
+    
+    <div class="panel">
+        <input type="number" id="speed" value="1000" min="1">
+        <select id="unit">
+            <option value="kmh">km/h (Velocità Oraria)</option>
+            <option value="kms">km/s (Velocità Orbitale)</option>
+            <option value="light">% Velocità della Luce</option>
+        </select>
+        <button onclick="calculate()" id="t-calc">Calcola Percorso</button>
+
+        <div class="examples" id="t-examples">
+            <b>Riferimenti:</b> Auto: 130 km/h | Aereo: 900 km/h | Missile (Voyager): 17 km/s | Luce: 100%
+        </div>
+    </div>
+
+    <div class="grid" id="results"></div>
+
+    <footer>
+        realizzato con l'I.A. su progetto di idolo tedesco (idolo1958) San Giorgio del Sannio
+    </footer>
+</div>
+
+<script>
+let lang = 'it';
+const C_KMH = 1079252848.8; // Velocità luce esatta in km/h
+
+const targets = [
+    { n_it: "Luna", n_en: "Moon", d: 384400, i: "fa-moon" },
+    { n_it: "Sole", n_en: "Sun", d: 149600000, i: "fa-sun" },
+    { n_it: "Venere", n_en: "Venus", d: 41000000, i: "fa-venus" },
+    { n_it: "Marte", n_en: "Mars", d: 78000000, i: "fa-mars" },
+    { n_it: "Giove", n_en: "Jupiter", d: 628000000, i: "fa-circle-dot" },
+    { n_it: "Saturno", n_en: "Saturn", d: 1277000000, i: "fa-ring" },
+    { n_it: "Urano", n_en: "Uranus", d: 2720000000, i: "fa-circle-notch" },
+    { n_it: "Nettuno", n_en: "Neptune", d: 4350000000, i: "fa-water" },
+    { n_it: "Proxima Centauri", n_en: "Proxima Centauri", d: 40170000000000, i: "fa-star" },
+    { n_it: "Sirio", n_en: "Sirius", d: 81360000000000, i: "fa-star" },
+    { n_it: "Arturo", n_en: "Arcturus", d: 347000000000000, i: "fa-star" },
+    { n_it: "Vega", n_en: "Vega", d: 236000000000000, i: "fa-star" },
+    { n_it: "Rigel", n_en: "Rigel", d: 8130000000000000, i: "fa-star" },
+    { n_it: "Betelgeuse", n_en: "Betelgeuse", d: 6070000000000000, i: "fa-star" },
+    { n_it: "Stella Polare", n_en: "North Star", d: 4000000000000000, i: "fa-star" },
+    { n_it: "Antares", n_en: "Antares", d: 5200000000000000, i: "fa-star" },
+    { n_it: "Pleiadi", n_en: "Pleiades", d: 4100000000000000, i: "fa-table-cells" },
+    { n_it: "Centro Galattico", n_en: "Galactic Center", d: 240000000000000000, i: "fa-bahai" },
+    { n_it: "Andromeda (Galassia)", n_en: "Andromeda Galaxy", d: 24000000000000000000, i: "fa-atom" },
+    { n_it: "Confine Universo", n_en: "Edge of Universe", d: 440000000000000000000000, i: "fa-infinity" }
+];
+
+function toggleLang() {
+    lang = lang === 'it' ? 'en' : 'it';
+    document.getElementById('t-title').innerText = lang === 'it' ? "Viaggiatore del Tempo Spaziale" : "Space Time Traveler";
+    document.getElementById('t-sub').innerText = lang === 'it' ? "Scopri quanto tempo impiegheresti per raggiungere i confini dell'universo" : "Find out how long it would take to reach the edges of the universe";
+    document.getElementById('t-calc').innerText = lang === 'it' ? "Calcola Percorso" : "Calculate Route";
+    document.getElementById('btnLang').innerText = lang === 'it' ? "English Version" : "Versione Italiana";
+    calculate();
+}
+
+function formatTime(h) {
+    if (h < 0.0166) return (h * 3600).toFixed(1) + " sec";
+    if (h < 1) return (h * 60).toFixed(1) + " min";
+    if (h < 48) return h.toFixed(1) + (lang === 'it' ? " ore" : " hours");
+    let days = h / 24;
+    if (days < 365) return days.toFixed(1) + (lang === 'it' ? " giorni" : " days");
+    let years = days / 365.25;
+    return years.toLocaleString(undefined, {maximumFractionDigits: 1}) + (lang === 'it' ? " anni" : " years");
+}
+
+function calculate() {
+    const val = parseFloat(document.getElementById('speed').value);
+    const unit = document.getElementById('unit').value;
+    let speedKmh = 0;
+
+    if (unit === 'kmh') speedKmh = val;
+    else if (unit === 'kms') speedKmh = val * 3600;
+    else if (unit === 'light') speedKmh = (val / 100) * C_KMH;
+
+    const resDiv = document.getElementById('results');
+    resDiv.innerHTML = "";
+
+    if (!speedKmh || speedKmh <= 0) return;
+
+    targets.forEach(t => {
+        const hours = t.d / speedKmh;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <i class="fa-solid ${t.i}"></i>
+            <div class="name">${lang === 'it' ? t.n_it : t.n_en}</div>
+            <div class="time">${formatTime(hours)}</div>
+            <div class="dist">${t.d.toLocaleString()} km</div>
+        `;
+        resDiv.appendChild(card);
+    });
+}
+
+calculate();
+</script>
+</body>
+</html>
