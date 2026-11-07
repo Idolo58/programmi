@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Peso Cosmo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --space-bg: #05070a;
+            --accent: #ffcc00;
+            --text: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--space-bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            background: var(--card-bg);
+            color: white;
+            border: 1px solid var(--accent);
+            padding: 5px 15px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+        .lang-btn:hover { background: var(--accent); color: black; }
+        
+        h1, h2 { text-align: center; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
+        
+        .input-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            padding: 25px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+        input, select {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: white;
+            font-size: 1.1rem;
+            outline: none;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid transparent;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .card i { font-size: 2.5rem; margin-bottom: 15px; display: block; }
+        .card .name { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; color: #ddd; }
+        .card .val { font-weight: bold; font-size: 1.4rem; color: var(--accent); }
+
+        /* Colori Icone */
+        .fa-sun { color: #ff9d00; }
+        .fa-moon { color: #d1d1d1; }
+        .fa-globe-europe { color: #2ecc71; }
+        .icon-mercurio { color: #95a5a6; }
+        .icon-venere { color: #e67e22; }
+        .icon-marte { color: #e74c3c; }
+        .icon-giove { color: #d35400; }
+        .icon-saturno { color: #f1c40f; }
+        .icon-urano { color: #3498db; }
+        .icon-nettuno { color: #2980b9; }
+        .fa-star { color: #f39c12; }
+        .fa-atom { color: #9b59b6; }
+
+        .info-section {
+            margin-top: 50px;
+            padding: 25px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            border-left: 5px solid var(--accent);
+        }
+        .footer { 
+            text-align: center; 
+            margin-top: 50px; 
+            font-size: 1.1rem; 
+            padding-bottom: 20px;
+            color: var(--text);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="lang-switch">
+        <button class="lang-btn" onclick="toggleLang()">Switch to English</button>
+    </div>
+
+    <h1 id="mainTitle">Peso nel Cosmo</h1>
+
+    <div class="input-section">
+        <div>
+            <label id="lblMass">Massa:</label>
+            <input type="number" id="massInput" value="70" oninput="calculate()">
+        </div>
+        <div>
+            <label id="lblUnit">Unità:</label>
+            <select id="unitInput" onchange="calculate()">
+                <option value="1">Kilogrammi (kg)</option>
+                <option value="0.001">Grammi (g)</option>
+                <option value="0.453592">Libbre (lb)</option>
+            </select>
+        </div>
+    </div>
+
+    <h2 id="titlePlanets">Pianeti e Corpi Celesti</h2>
+    <div id="planetsGrid" class="results-grid"></div>
+
+    <h2 id="titleStars" style="margin-top:40px;">Stelle e Oggetti Densi</h2>
+    <div id="starsGrid" class="results-grid"></div>
+
+    <div class="info-section" id="infoContent">
+        <!-- Riempito via JS -->
+    </div>
+
+    <div class="footer" id="footerText">
+        <!-- Riempito via JS -->
+    </div>
+</div>
+
+<script>
+let currentLang = 'it';
+
+const translations = {
+    it: {
+        btn: "Switch to English",
+        title: "Peso nel Cosmo",
+        mass: "Massa:",
+        unit: "Unità:",
+        planets: "Pianeti e Corpi Celesti",
+        stars: "Stelle e Oggetti Densi",
+        footer: "realizzato con l'I.A. su progetto di idolo tedesco (idolo1958-Instagram) San Giorgio del Sannio",
+        info: `<h2>Differenza tra Massa e Peso</h2>
+               <p>La <strong>massa</strong> è la quantità di materia e non cambia mai, ovunque tu vada nell'universo.</p>
+               <p>Il <strong>peso</strong> è la forza di gravità. Una <strong>bilancia pesapersone</strong> misura la spinta verso il basso, ma è tarata sulla Terra. Se la porti su un altro pianeta, la molla interna scatterà in modo diverso, mostrandoti un valore differente anche se tu sei sempre "alto e grosso" uguale!</p>`
+    },
+    en: {
+        btn: "Passa all'Italiano",
+        title: "Weight in the Cosmos",
+        mass: "Mass:",
+        unit: "Unit:",
+        planets: "Planets & Celestial Bodies",
+        stars: "Stars & Dense Objects",
+        footer: "created with A.I. based on a project by idolo tedesco (idolo1958-Instagram) San Giorgio del Sannio",
+        info: `<h2>Mass vs Weight</h2>
+               <p><strong>Mass</strong> is the amount of matter you are made of; it never changes, no matter where you are in the universe.</p>
+               <p><strong>Weight</strong> is the gravitational pull. A <strong>bathroom scale</strong> measures downward force but is calibrated for Earth. If you take it to another planet, the internal mechanism will react differently, showing a different value even though your body remains exactly the same!</p>`
+    }
+};
+
+const celestialBodies = [
+    { name: {it: "Sole", en: "Sun"}, g: 274, icon: "fa-sun" },
+    { name: {it: "Mercurio", en: "Mercury"}, g: 3.7, icon: "fa-circle icon-mercurio" },
+    { name: {it: "Venere", en: "Venus"}, g: 8.87, icon: "fa-circle icon-venere" },
+    { name: {it: "Terra", en: "Earth"}, g: 9.81, icon: "fa-globe-europe" },
+    { name: {it: "Luna", en: "Moon"}, g: 1.62, icon: "fa-moon" },
+    { name: {it: "Marte", en: "Mars"}, g: 3.71, icon: "fa-circle icon-marte" },
+    { name: {it: "Giove", en: "Jupiter"}, g: 24.79, icon: "fa-circle icon-giove" },
+    { name: {it: "Saturno", en: "Saturn"}, g: 10.44, icon: "fa-circle icon-saturno" },
+    { name: {it: "Urano", en: "Uranus"}, g: 8.69, icon: "fa-circle icon-urano" },
+    { name: {it: "Nettuno", en: "Neptune"}, g: 11.15, icon: "fa-circle icon-nettuno" }
+];
+
+const stars = [
+    { name: "Sirio A", g: 245, icon: "fa-star" },
+    { name: "Vega", g: 170, icon: "fa-star" },
+    { name: "Arturo", g: 2.0, icon: "fa-star" },
+    { name: "Rigel", g: 1.5, icon: "fa-star" },
+    { name: "Procione", g: 160, icon: "fa-star" },
+    { name: "Altair", g: 180, icon: "fa-star" },
+    { name: "Spica", g: 150, icon: "fa-star" },
+    { name: "Polluce", g: 10, icon: "fa-star" },
+    { name: "Fomalhaut", g: 160, icon: "fa-star" },
+    { name: "Deneb", g: 0.5, icon: "fa-star" },
+    { name: "Regolo", g: 140, icon: "fa-star" },
+    { name: "Castore", g: 180, icon: "fa-star" },
+    { name: "Sirio B", g: 4400000, icon: "fa-star" },
+    { name: {it: "Stella Neutroni", en: "Neutron Star"}, g: 2000000000000, icon: "fa-atom" },
+    { name: "Canopo", g: 0.5, icon: "fa-star" },
+    { name: "Capella", g: 5, icon: "fa-star" },
+    { name: "Aldebaran", g: 0.16, icon: "fa-star" },
+    { name: "Betelgeuse", g: 0.01, icon: "fa-star" },
+    { name: "Antares", g: 0.007, icon: "fa-star" },
+    { name: "Mimosa", g: 140, icon: "fa-star" }
+];
+
+function toggleLang() {
+    currentLang = currentLang === 'it' ? 'en' : 'it';
+    updateUI();
+}
+
+function updateUI() {
+    const t = translations[currentLang];
+    document.querySelector('.lang-btn').innerText = t.btn;
+    document.getElementById('mainTitle').innerText = t.title;
+    document.getElementById('lblMass').innerText = t.mass;
+    document.getElementById('lblUnit').innerText = t.unit;
+    document.getElementById('titlePlanets').innerText = t.planets;
+    document.getElementById('titleStars').innerText = t.stars;
+    document.getElementById('infoContent').innerHTML = t.info;
+    document.getElementById('footerText').innerText = t.footer;
+    calculate();
+}
+
+function calculate() {
+    const mass = document.getElementById('massInput').value;
+    const factor = document.getElementById('unitInput').value;
+    const massKg = mass * factor;
+
+    const render = (containerId, data) => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        data.forEach(item => {
+            const name = typeof item.name === 'object' ? item.name[currentLang] : item.name;
+            const w = massKg * item.g / 9.81;
+            const weightEq = w.toLocaleString(undefined, {maximumFractionDigits: w < 1 ? 3 : 1});
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <i class="fas ${item.icon}"></i>
+                <div class="name">${name}</div>
+                <div class="val">${weightEq} kg</div>
+            `;
+            container.appendChild(card);
+        });
+    };
+
+    render('planetsGrid', celestialBodies);
+    render('starsGrid', stars);
+}
+
+// Inizializzazione
+updateUI();
+</script>
+
+</body>
+</html>
