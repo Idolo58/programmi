@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Sky Estate - San Giorgio del Sannio</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #e0e0e0; background-color: #05081a; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: #0d1226; padding: 30px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,0,0,0.8); border: 1px solid #4db6ac; }
+        h1 { color: #4db6ac; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .subtitle { text-align: center; color: #80cbc4; margin-bottom: 30px; font-style: italic; }
+        .controls { background: #1a237e; padding: 25px; border-radius: 10px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; align-items: end; border: 1px solid #26a69a; }
+        label { display: block; margin-bottom: 8px; color: #b2dfdb; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #4db6ac; background: #05081a; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #4db6ac; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #05081a; font-size: 1em; transition: 0.3s; }
+        button:hover { background: #b2dfdb; transform: translateY(-2px); }
+        .result-card { background: linear-gradient(145deg, #1a237e, #0d1226); padding: 25px; margin-top: 20px; border-left: 8px solid #4db6ac; border-radius: 8px; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .grid-results { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .data-block { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #26a69a; }
+        .info-section { margin-top: 40px; border-top: 1px solid #4db6ac; padding-top: 25px; }
+        .table-wrapper { overflow-y: auto; max-height: 500px; margin-top: 15px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; background: #0d1226; font-size: 0.85em; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #1a237e; }
+        th { color: #4db6ac; background: #05081a; position: sticky; top: 0; z-index: 10; }
+        tr:hover { background: #1a237e; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #4db6ac; color: #80cbc4; font-size: 0.9em; }
+        .highlight { color: #4db6ac; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Profondo Cielo Estivo</h1>
+    <p class="subtitle">Analisi Oggetti Deep Sky - San Giorgio del Sannio (BN)</p>
+    
+    <div class="controls">
+        <div>
+            <label for="dateInput">Data</label>
+            <input type="date" id="dateInput">
+        </div>
+        <div>
+            <label for="timeInput">Ora Locale</label>
+            <input type="time" id="timeInput" value="22:30">
+        </div>
+        <div>
+            <label for="objSelect">Seleziona Oggetto</label>
+            <select id="objSelect"></select>
+        </div>
+        <button onclick="calculate()">CALCOLA POSIZIONE</button>
+    </div>
+
+    <div id="result" class="result-card"></div>
+
+    <div class="info-section">
+        <h2>Catalogo 20 Oggetti del Profondo Cielo</h2>
+        <div class="table-wrapper">
+            <table id="objTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Costellazione</th>
+                        <th>Mag.</th>
+                        <th>Distanza (a.l.)</th>
+                        <th>Storia e Note</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        Coordinate: <strong>San Giorgio del Sannio</strong> | Lat: 41.071° N | Lon: 14.856° E<br>
+        realizzato con l'I.A. su progetto di idolo tedesco (idolo1958-Instagram) San Giorgio del Sannio
+    </footer>
+</div>
+
+<script>
+    const LAT = 41.071;
+    const LON = 14.856;
+    const TO_RAD = Math.PI / 180;
+    const TO_DEG = 180 / Math.PI;
+
+    const deepSky = [
+        { name: "M13 - Grande Ammasso d'Ercole", type: "Globulare", ra: 250.42, dec: 36.46, mag: 5.8, constel: "Ercole", dist: "25100", bio: "Contiene centinaia di migliaia di stelle vecchissime." },
+        { name: "M57 - Nebulosa Anello", type: "Planetaria", ra: 283.40, dec: 33.03, mag: 8.8, constel: "Lira", dist: "2300", bio: "Il guscio di gas espulso da una stella morente." },
+        { name: "M27 - Nebulosa Manubrio", type: "Planetaria", ra: 299.90, dec: 22.72, mag: 7.4, constel: "Volpetta", dist: "1360", bio: "Chiamata Dumbbell per la sua forma a clessidra." },
+        { name: "M8 - Nebulosa Laguna", type: "Nebulosa", ra: 271.0, dec: -24.38, mag: 6.0, constel: "Sagittario", dist: "4100", bio: "Gigantesca nube di idrogeno visibile a occhio nudo." },
+        { name: "M20 - Nebulosa Trifida", type: "Nebulosa", ra: 270.67, dec: -23.03, mag: 6.3, constel: "Sagittario", dist: "5200", bio: "Un mix di nebulosa a emissione, riflessione e oscura." },
+        { name: "M17 - Nebulosa Omega", type: "Nebulosa", ra: 275.2, dec: -16.18, mag: 6.0, constel: "Sagittario", dist: "5500", bio: "Nota anche come Nebulosa Cigno per il suo profilo." },
+        { name: "M16 - Nebulosa Aquila", type: "Nebulosa", ra: 274.7, dec: -13.82, mag: 6.0, constel: "Serpente", dist: "7000", bio: "Ospita i celebri 'Pilastri della Creazione'." },
+        { name: "M11 - Ammasso Anitra Selvatica", type: "Aperto", ra: 282.75, dec: -6.27, mag: 5.8, constel: "Scudo", dist: "6200", bio: "Uno degli ammassi aperti più ricchi e compatti." },
+        { name: "M22 - Grande Ammasso Sagittario", type: "Globulare", ra: 279.1, dec: -23.9, mag: 5.1, constel: "Sagittario", dist: "10600", bio: "Uno dei globulari più luminosi e vicini a noi." },
+        { name: "M4", type: "Globulare", ra: 245.9, dec: -26.53, mag: 5.6, constel: "Scorpione", dist: "7200", bio: "Il primo ammasso globulare in cui sono state risolte le stelle." },
+        { name: "M5", type: "Globulare", ra: 229.64, dec: 2.08, mag: 5.7, constel: "Serpente", dist: "24500", bio: "Uno dei più antichi globulari della galassia." },
+        { name: "M80", type: "Globulare", ra: 244.26, dec: -22.98, mag: 7.3, constel: "Scorpione", dist: "32600", bio: "Ammasso densissimo situato tra Antares e Akrab." },
+        { name: "M6 - Ammasso Farfalla", type: "Aperto", ra: 265.1, dec: -32.2, mag: 4.2, constel: "Scorpione", dist: "1600", bio: "Le sue stelle formano la figura di una farfalla." },
+        { name: "M7 - Ammasso di Tolomeo", type: "Aperto", ra: 268.45, dec: -34.8, mag: 3.3, constel: "Scorpione", dist: "980", bio: "Già descritto da Tolomeo nel 130 d.C." },
+        { name: "M92", type: "Globulare", ra: 259.28, dec: 43.14, mag: 6.4, constel: "Ercole", dist: "26700", bio: "Bello quasi quanto M13 ma spesso ignorato." },
+        { name: "NGC 6960 - Nebulosa Velo", type: "Resto Supernova", ra: 311.43, dec: 30.7, mag: 7.0, constel: "Cigno", dist: "2400", bio: "I resti di una stella esplosa migliaia di anni fa." },
+        { name: "M31 - Galassia di Andromeda", type: "Galassia", ra: 10.68, dec: 41.27, mag: 3.4, constel: "Andromeda", dist: "2500000", bio: "L'oggetto più lontano visibile a occhio nudo." },
+        { name: "M39", type: "Aperto", ra: 322.9, dec: 48.4, mag: 4.6, constel: "Cigno", dist: "800", bio: "Ammasso molto esteso e luminoso, ideale per binocoli." },
+        { name: "M51 - Galassia Vortice", type: "Galassia", ra: 202.7, dec: 47.1, mag: 8.4, constel: "Cani Caccia", dist: "23000000", bio: "Ancora ben visibile nelle prime notti estive." },
+        { name: "M15", type: "Globulare", ra: 322.49, dec: 12.17, mag: 6.2, constel: "Pegaso", dist: "33600", bio: "Uno dei globulari con il nucleo più denso conosciuto." }
+    ];
+
+    function init() {
+        const select = document.getElementById('objSelect');
+        const tbody = document.querySelector("#objTable tbody");
+        
+        select.innerHTML = "";
+        tbody.innerHTML = "";
+
+        deepSky.sort((a,b) => a.ra - b.ra).forEach((o, i) => {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = `${o.name} (${o.constel})`;
+            select.appendChild(opt);
+            
+            tbody.innerHTML += `<tr>
+                <td><strong>${o.name}</strong></td>
+                <td>${o.type}</td>
+                <td>${o.constel}</td>
+                <td>${o.mag}</td>
+                <td>${o.dist}</td>
+                <td>${o.bio}</td>
+            </tr>`;
+        });
+
+        document.getElementById('dateInput').valueAsDate = new Date();
+    }
+
+    window.onload = init;
+
+    function formatHMS(deg) {
+        const tot = Math.round(Math.abs(deg) / 15 * 3600);
+        const hh = Math.floor(tot / 3600);
+        const mm = Math.floor((tot % 3600) / 60);
+        const ss = tot % 60;
+        return `${deg < 0 ? '-' : ''}${hh}h ${mm}m ${ss}s`;
+    }
+
+    function calculate() {
+        const dateVal = document.getElementById('dateInput').value;
+        const timeVal = document.getElementById('timeInput').value;
+        const objIdx = document.getElementById('objSelect').value;
+        const obj = deepSky[objIdx];
+
+        const localDate = new Date(`${dateVal}T${timeVal}`);
+        const utcHours = localDate.getUTCHours() + localDate.getUTCMinutes()/60 + localDate.getUTCSeconds()/3600;
+        const d = (localDate.getTime() - new Date('2000-01-01T12:00:00Z').getTime()) / 86400000;
+        
+        let lst = (100.46 + 0.985647 * d + LON + (15 * utcHours)) % 360;
+        if (lst < 0) lst += 360;
+
+        let ha = lst - obj.ra;
+        if (ha < -180) ha += 360;
+        if (ha > 180) ha -= 360;
+
+        let phi = LAT * TO_RAD;
+        let dec = obj.dec * TO_RAD;
+        let h_ang = ha * TO_RAD;
+
+        let sin_alt = Math.sin(dec) * Math.sin(phi) + Math.cos(dec) * Math.cos(phi) * Math.cos(h_ang);
+        let alt = Math.asin(sin_alt) * TO_DEG;
+
+        let cos_az = (Math.sin(dec) - Math.sin(alt * TO_RAD) * Math.sin(phi)) / (Math.cos(alt * TO_RAD) * Math.cos(phi));
+        let az = Math.acos(Math.max(-1, Math.min(1, cos_az))) * TO_DEG;
+        if (Math.sin(h_ang) > 0) az = 360 - az;
+
+        let transit_ha_diff = -ha / 15.041; 
+        let transitTime = new Date(localDate.getTime() + transit_ha_diff * 3600000);
+
+        const resDiv = document.getElementById('result');
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = `
+            <h2 style="margin:0; color:#4db6ac">${obj.name.toUpperCase()}</h2>
+            <div class="grid-results">
+                <div class="data-block">
+                    <label>Angolo Orario (HMS)</label>
+                    <span class="highlight">${formatHMS(ha)}</span>
+                </div>
+                <div class="data-block">
+                    <label>Altezza Attuale</label>
+                    <span class="highlight">${alt.toFixed(2)}°</span>
+                </div>
+                <div class="data-block">
+                    <label>Azimut (Sud=180°)</label>
+                    <span class="highlight">${az.toFixed(2)}°</span>
+                </div>
+                <div class="data-block">
+                    <label>Altezza Massima al Transito</label>
+                    <span class="highlight">${(90 - Math.abs(LAT - obj.dec)).toFixed(2)}°</span>
+                </div>
+                <div class="data-block" style="grid-column: span 2; border-color: #4db6ac;">
+                    <label>Transito Locale a San Giorgio del Sannio</label>
+                    Oggi passa al meridiano alle: <span class="highlight" style="font-size:1.4em">${transitTime.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}</span>
+                </div>
+            </div>
+        `;
+        resDiv.scrollIntoView({behavior: 'smooth'});
+    }
+</script>
+
+</body>
+</html>
