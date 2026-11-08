@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stelle Estive - San Giorgio del Sannio</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #e0e0e0; background-color: #050a14; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: #0d1226; padding: 30px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,0,0,0.8); border: 1px solid #ffca28; }
+        h1 { color: #ffca28; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .subtitle { text-align: center; color: #ffe082; margin-bottom: 30px; font-style: italic; }
+        .controls { background: #1a237e; padding: 25px; border-radius: 10px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; align-items: end; border: 1px solid #3f51b5; }
+        label { display: block; margin-bottom: 8px; color: #c5cae9; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ffca28; background: #050a14; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #ffca28; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #050a14; font-size: 1em; transition: 0.3s; }
+        button:hover { background: #fff8e1; transform: translateY(-2px); }
+        .result-card { background: linear-gradient(145deg, #1a237e, #0d1226); padding: 25px; margin-top: 20px; border-left: 8px solid #ffca28; border-radius: 8px; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .grid-results { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .data-block { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #3f51b5; }
+        .info-section { margin-top: 40px; border-top: 1px solid #1a237e; padding-top: 25px; }
+        .table-wrapper { overflow-y: auto; max-height: 500px; margin-top: 15px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; background: #0d1226; font-size: 0.85em; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #1a237e; }
+        th { color: #ffca28; background: #050a14; position: sticky; top: 0; z-index: 10; }
+        tr:hover { background: #1a237e; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #ffca28; color: #ffe082; font-size: 0.9em; }
+        .highlight { color: #ffca28; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Le 20 Stelle dell'Estate</h1>
+    <p class="subtitle">Analisi del Transito Meridiano - San Giorgio del Sannio (BN)</p>
+    
+    <div class="controls">
+        <div>
+            <label for="dateInput">Data</label>
+            <input type="date" id="dateInput">
+        </div>
+        <div>
+            <label for="timeInput">Ora Locale</label>
+            <input type="time" id="timeInput" value="22:30">
+        </div>
+        <div>
+            <label for="starSelect">Seleziona Stella</label>
+            <select id="starSelect"></select>
+        </div>
+        <button onclick="calculate()">CALCOLA ORA E POSIZIONE</button>
+    </div>
+
+    <div id="result" class="result-card"></div>
+
+    <div class="info-section">
+        <h2>Catalogo delle 20 Stelle Guida Estive</h2>
+        <div class="table-wrapper">
+            <table id="objTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Costellazione</th>
+                        <th>Mag.</th>
+                        <th>Distanza</th>
+                        <th>Storia e Note</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        Dati astronomici riferiti a: <strong>San Giorgio del Sannio (BN)</strong><br>
+        Lat: 41.071° N | Lon: 14.856° E<br>
+        realizzato con l'I.A. su progetto di idolo tedesco (idolo1958-Instagram) San Giorgio del Sannio
+    </footer>
+</div>
+
+<script>
+    const LAT = 41.071;
+    const LON = 14.856;
+    const TO_RAD = Math.PI / 180;
+    const TO_DEG = 180 / Math.PI;
+
+    // Database 20 Stelle Estive
+    const stars = [
+        { name: "Vega", ra: 279.23, dec: 38.78, mag: 0.03, constel: "Lira", dist: "25 ly", bio: "La stella più brillante del cielo estivo, vertice del Triangolo." },
+        { name: "Altair", ra: 297.70, dec: 8.87, mag: 0.76, constel: "Aquila", dist: "16.7 ly", bio: "Famosa per la sua rotazione rapidissima che la schiaccia ai poli." },
+        { name: "Deneb", ra: 310.36, dec: 45.28, mag: 1.25, constel: "Cigno", dist: "2600 ly", bio: "Supergigante bianca, tra le stelle più lontane visibili a occhio nudo." },
+        { name: "Antares", ra: 247.16, dec: -26.43, mag: 1.06, constel: "Scorpione", dist: "550 ly", bio: "Il 'rivale di Marte' per il suo intenso colore rosso." },
+        { name: "Ras Alhague", ra: 263.73, dec: 12.56, mag: 2.08, constel: "Ofiuco", dist: "48 ly", bio: "La testa di colui che porta il serpente." },
+        { name: "Shaula", ra: 263.40, dec: -37.10, mag: 1.62, constel: "Scorpione", dist: "570 ly", bio: "Situata sul pungiglione dello Scorpione." },
+        { name: "Kaus Australis", ra: 276.19, dec: -34.38, mag: 1.85, constel: "Sagittario", dist: "143 ly", bio: "La parte meridionale dell'arco del Sagittario." },
+        { name: "Nunki", ra: 283.82, dec: -26.30, mag: 2.05, constel: "Sagittario", dist: "228 ly", bio: "Stella molto antica, citata già dai babilonesi." },
+        { name: "Albireo", ra: 292.68, dec: 27.96, mag: 3.05, constel: "Cigno", dist: "380 ly", bio: "La più bella stella doppia: una gialla e una blu." },
+        { name: "Tarazed", ra: 296.53, dec: 10.61, mag: 2.72, constel: "Aquila", dist: "460 ly", bio: "Accompagna Altair nel cielo, è una gigante arancione." },
+        { name: "Rasalgethi", ra: 258.66, dec: 14.39, mag: 3.5, constel: "Ercole", dist: "360 ly", bio: "La testa di Ercole, gigante rossa variabile: forma una coppia con Ras Alhague." },
+        { name: "Gemma (Alphecca)", ra: 233.67, dec: 26.71, mag: 2.22, constel: "Cor. Boreale", dist: "75 ly", bio: "La perla centrale della Corona Boreale." },
+        { name: "Sadr", ra: 305.56, dec: 40.25, mag: 2.23, constel: "Cigno", dist: "1500 ly", bio: "Si trova nel petto del Cigno, al centro della Croce del Nord." },
+        { name: "Eltanin (Etamin)", ra: 269.15, dec: 51.49, mag: 2.24, constel: "Dragone", dist: "148 ly", bio: "La stella più luminosa del Dragone, vicina allo zenit: servì a scoprire l'aberrazione della luce." },
+        { name: "Kornephoros", ra: 247.53, dec: 21.48, mag: 2.77, constel: "Ercole", dist: "139 ly", bio: "La stella più luminosa della costellazione di Ercole." },
+        { name: "Dschubba", ra: 240.08, dec: -22.62, mag: 2.32, constel: "Scorpione", dist: "400 ly", bio: "Rappresenta la fronte dello Scorpione." },
+        { name: "Sabik", ra: 257.61, dec: -15.73, mag: 2.43, constel: "Ofiuco", dist: "88 ly", bio: "Stella doppia che segna le gambe di Ofiuco." },
+        { name: "Ascella", ra: 285.42, dec: -29.88, mag: 2.60, constel: "Sagittario", dist: "89 ly", bio: "Parte della 'Teiera' del Sagittario." },
+        { name: "Enif", ra: 326.17, dec: 9.87, mag: 2.38, constel: "Pegaso", dist: "670 ly", bio: "Il naso del cavallo alato, annuncia l'autunno." },
+        { name: "Gienah", ra: 311.55, dec: 33.97, mag: 2.48, constel: "Cigno", dist: "72 ly", bio: "Rappresenta l'ala destra del Cigno." }
+    ];
+
+    // Funzione per popolare menu e tabella al caricamento
+    function init() {
+        const select = document.getElementById('starSelect');
+        const tbody = document.querySelector("#objTable tbody");
+        
+        // Pulizia iniziale
+        select.innerHTML = "";
+        tbody.innerHTML = "";
+
+        // Popolamento (ordinato per Ascensione Retta)
+        stars.sort((a,b) => a.ra - b.ra).forEach((s, i) => {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = `${s.name} (${s.constel})`;
+            select.appendChild(opt);
+            
+            tbody.innerHTML += `<tr>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.constel}</td>
+                <td>${s.mag}</td>
+                <td>${s.dist}</td>
+                <td>${s.bio}</td>
+            </tr>`;
+        });
+
+        // Imposta data odierna
+        document.getElementById('dateInput').valueAsDate = new Date();
+    }
+
+    // Esegui init al caricamento della pagina
+    window.onload = init;
+
+    function formatHMS(deg) {
+        const tot = Math.round(Math.abs(deg) / 15 * 3600);
+        const hh = Math.floor(tot / 3600);
+        const mm = Math.floor((tot % 3600) / 60);
+        const ss = tot % 60;
+        return `${deg < 0 ? '-' : ''}${hh}h ${mm}m ${ss}s`;
+    }
+
+    function calculate() {
+        const dateVal = document.getElementById('dateInput').value;
+        const timeVal = document.getElementById('timeInput').value;
+        const starIdx = document.getElementById('starSelect').value;
+        const star = stars[starIdx];
+
+        if (!dateVal || !timeVal) {
+            alert("Seleziona data e ora");
+            return;
+        }
+
+        const localDate = new Date(`${dateVal}T${timeVal}`);
+        const utcHours = localDate.getUTCHours() + localDate.getUTCMinutes()/60 + localDate.getUTCSeconds()/3600;
+        
+        const d = (localDate.getTime() - new Date('2000-01-01T12:00:00Z').getTime()) / 86400000;
+        let lst = (100.46 + 0.985647 * d + LON + (15 * utcHours)) % 360;
+        if (lst < 0) lst += 360;
+
+        let ha = lst - star.ra;
+        if (ha < -180) ha += 360;
+        if (ha > 180) ha -= 360;
+
+        let phi = LAT * TO_RAD;
+        let dec = star.dec * TO_RAD;
+        let h_ang = ha * TO_RAD;
+
+        let sin_alt = Math.sin(dec) * Math.sin(phi) + Math.cos(dec) * Math.cos(phi) * Math.cos(h_ang);
+        let alt = Math.asin(sin_alt) * TO_DEG;
+
+        let cos_az = (Math.sin(dec) - Math.sin(alt * TO_RAD) * Math.sin(phi)) / (Math.cos(alt * TO_RAD) * Math.cos(phi));
+        let az = Math.acos(Math.max(-1, Math.min(1, cos_az))) * TO_DEG;
+        if (Math.sin(h_ang) > 0) az = 360 - az;
+
+        let transit_ha_diff = -ha / 15.041; 
+        let transitTime = new Date(localDate.getTime() + transit_ha_diff * 3600000);
+
+        const resDiv = document.getElementById('result');
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = `
+            <h2 style="margin:0; color:#ffca28">${star.name.toUpperCase()}</h2>
+            <div class="grid-results">
+                <div class="data-block">
+                    <label>Angolo Orario (HMS)</label>
+                    <span class="highlight">${formatHMS(ha)}</span>
+                </div>
+                <div class="data-block">
+                    <label>Altezza Attuale</label>
+                    <span class="highlight">${alt.toFixed(2)}°</span>
+                </div>
+                <div class="data-block">
+                    <label>Azimut (Sud=180°)</label>
+                    <span class="highlight">${az.toFixed(2)}°</span>
+                </div>
+                <div class="data-block">
+                    <label>Stato Transito</label>
+                    <span class="highlight">${ha > 0 ? 'Già a Ovest' : 'Ancora a Est'}</span>
+                </div>
+                <div class="data-block" style="grid-column: span 2; border-color: #ffca28;">
+                    <label>Passaggio al Meridiano</label>
+                    A San Giorgio del Sannio oggi transita alle: <span class="highlight" style="font-size:1.4em">${transitTime.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}</span><br>
+                    Altezza massima al transito: <span class="highlight">${(90 - Math.abs(LAT - star.dec)).toFixed(2)}°</span>
+                </div>
+            </div>
+        `;
+        resDiv.scrollIntoView({behavior: 'smooth'});
+    }
+</script>
+
+</body>
+</html>
