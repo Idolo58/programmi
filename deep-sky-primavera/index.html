@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Sky Primavera - San Giorgio del Sannio</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #e0e0e0; background-color: #050a14; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: #0d1226; padding: 30px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,0,0,0.8); border: 1px solid #1a237e; }
+        h1 { color: #9fa8da; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .subtitle { text-align: center; color: #7986cb; margin-bottom: 30px; font-style: italic; }
+        .controls { background: #1a237e; padding: 25px; border-radius: 10px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; align-items: end; border: 1px solid #3f51b5; }
+        label { display: block; margin-bottom: 8px; color: #c5cae9; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #7986cb; background: #050a14; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #7986cb; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #050a14; font-size: 1em; transition: 0.3s; }
+        button:hover { background: #c5cae9; transform: translateY(-2px); }
+        .result-card { background: linear-gradient(145deg, #1a237e, #0d1226); padding: 25px; margin-top: 20px; border-left: 8px solid #7986cb; border-radius: 8px; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .grid-results { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .data-block { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #3f51b5; }
+        .info-section { margin-top: 40px; border-top: 1px solid #1a237e; padding-top: 25px; }
+        .table-wrapper { overflow-y: auto; max-height: 500px; margin-top: 15px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; background: #0d1226; font-size: 0.85em; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #1a237e; }
+        th { color: #9fa8da; background: #050a14; position: sticky; top: 0; z-index: 10; }
+        tr:hover { background: #1a237e; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #1a237e; color: #7986cb; font-size: 0.9em; }
+        .highlight { color: #9fa8da; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Deep Sky di Primavera</h1>
+    <p class="subtitle">Transito Oggetti del Profondo Cielo - San Giorgio del Sannio</p>
+    
+    <div class="controls">
+        <div>
+            <label for="dateInput">Data</label>
+            <input type="date" id="dateInput">
+        </div>
+        <div>
+            <label for="timeInput">Ora Locale</label>
+            <input type="time" id="timeInput" value="22:00">
+        </div>
+        <div>
+            <label for="objSelect">Oggetto Deep Sky (20 Selezionati)</label>
+            <select id="objSelect"></select>
+        </div>
+        <button onclick="calculate()">CALCOLA TRANSITO</button>
+    </div>
+
+    <div id="result" class="result-card"></div>
+
+    <div class="info-section">
+        <h2>Catalogo Oggetti del Profondo Cielo</h2>
+        <div class="table-wrapper">
+            <table id="objTable">
+                <thead>
+                    <tr>
+                        <th>Nome/Catalogo</th>
+                        <th>Tipo</th>
+                        <th>Costellazione</th>
+                        <th>Mag.</th>
+                        <th>Distanza</th>
+                        <th>Storia e Note</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        Calcoli riferiti a: <strong>San Giorgio del Sannio (BN)</strong><br>
+        Lat: 41.071° N | Lon: 14.856° E<br>
+        realizzato con l'I.A. su progetto di idolo tedesco (idolo1958-Instagram) San Giorgio del Sannio
+    </footer>
+</div>
+
+<script>
+    const LAT = 41.071;
+    const LON = 14.856;
+    const TO_RAD = Math.PI / 180;
+    const TO_DEG = 180 / Math.PI;
+
+    // Database 20 Oggetti Deep Sky Primaverili
+    const objects = [
+        { name: "M44 - Presepe", type: "Ammasso Aperto", ra: 130.1, dec: 19.67, mag: 3.7, constel: "Cancro", dist: "577 ly", bio: "Noto fin dall'antichità come una piccola nube nebulosa." },
+        { name: "M67", type: "Ammasso Aperto", ra: 132.85, dec: 11.82, mag: 6.1, constel: "Cancro", dist: "2700 ly", bio: "Uno degli ammassi aperti più antichi conosciuti." },
+        { name: "M81 - Galassia di Bode", type: "Galassia a Spirale", ra: 148.89, dec: 69.07, mag: 6.9, constel: "Orsa Mag.", dist: "12 mln ly", bio: "Scoperta da Johann Bode nel 1774." },
+        { name: "M82 - Galassia Sigaro", type: "Galassia Irregolare", ra: 148.97, dec: 69.68, mag: 8.4, constel: "Orsa Mag.", dist: "12 mln ly", bio: "Famosa per l'intensa formazione stellare (starburst)." },
+        { name: "M95", type: "Galassia a Spirale", ra: 161.02, dec: 11.70, mag: 9.7, constel: "Leone", dist: "33 mln ly", bio: "Parte del gruppo Leo I, galassia con una barra centrale evidente." },
+        { name: "M96", type: "Galassia a Spirale", ra: 161.69, dec: 11.82, mag: 9.2, constel: "Leone", dist: "31 mln ly", bio: "La più luminosa del gruppo Leo I." },
+        { name: "M105", type: "Galassia Ellittica", ra: 161.96, dec: 12.58, mag: 9.3, constel: "Leone", dist: "32 mln ly", bio: "Nota per ospitare un buco nero supermassiccio." },
+        { name: "M65", type: "Galassia a Spirale", ra: 169.73, dec: 13.09, mag: 9.3, constel: "Leone", dist: "35 mln ly", bio: "Membro del famoso 'Tripletto del Leone'." },
+        { name: "M66", type: "Galassia a Spirale", ra: 170.06, dec: 12.99, mag: 8.9, constel: "Leone", dist: "36 mln ly", bio: "La più grande e brillante del Tripletto del Leone." },
+        { name: "NGC 3628 - Galassia Hamburger", type: "Galassia", ra: 170.07, dec: 13.59, mag: 9.5, constel: "Leone", dist: "35 mln ly", bio: "Vista perfettamente di taglio con una banda di polveri scura." },
+        { name: "M97 - Nebulosa Civetta", type: "Nebulosa Planetaria", ra: 168.70, dec: 55.02, mag: 9.9, constel: "Orsa Mag.", dist: "2030 ly", bio: "Chiamata così per le due macchie scure simili agli occhi di un gufo." },
+        { name: "M108", type: "Galassia a Spirale", ra: 167.88, dec: 55.67, mag: 10.0, constel: "Orsa Mag.", dist: "45 mln ly", bio: "Galassia vista quasi di taglio, ricca di nubi di polvere." },
+        { name: "M101 - Galassia Girandola", type: "Galassia a Spirale", ra: 210.80, dec: 54.35, mag: 7.9, constel: "Orsa Mag.", dist: "21 mln ly", bio: "Enorme spirale 'face-on' con bracci molto estesi." },
+        { name: "M51 - Galassia Vortice", type: "Galassia a Spirale", ra: 202.73, dec: 47.19, mag: 8.4, constel: "Cani Caccia", dist: "23 mln ly", bio: "La prima galassia in cui fu scoperta la struttura a spirale." },
+        { name: "M3", type: "Ammasso Globulare", ra: 205.55, dec: 28.38, mag: 6.2, constel: "Cani Caccia", dist: "33900 ly", bio: "Uno dei più grandi e luminosi ammassi globulari del cielo." },
+        { name: "M64 - Galassia Occhio Nero", type: "Galassia a Spirale", ra: 194.18, dec: 21.68, mag: 8.5, constel: "Ch. Berenice", dist: "17 mln ly", bio: "Caratterizzata da una spettacolare nube di polvere oscura." },
+        { name: "M53", type: "Ammasso Globulare", ra: 198.23, dec: 18.17, mag: 7.6, constel: "Ch. Berenice", dist: "58000 ly", bio: "Uno degli ammassi più lontani dal centro galattico." },
+        { name: "M104 - Galassia Sombrero", type: "Galassia a Spirale", ra: 189.99, dec: -11.62, mag: 8.0, constel: "Vergine", dist: "29 mln ly", bio: "Famosa per il suo enorme nucleo e la banda di polveri netta." },
+        { name: "M87 - Virgo A", type: "Galassia Ellittica", ra: 187.71, dec: 12.39, mag: 8.6, constel: "Vergine", dist: "53 mln ly", bio: "Gigante ellittica al centro dell'Ammasso della Vergine." },
+        { name: "M13 - Grande Ammasso Ercole", type: "Ammasso Globulare", ra: 250.42, dec: 36.46, mag: 5.8, constel: "Ercole", dist: "22000 ly", bio: "Il più bell'ammasso globulare dell'emisfero nord, visibile in tarda primavera." }
+    ];
+
+    const select = document.getElementById('objSelect');
+    const tbody = document.querySelector("#objTable tbody");
+    objects.sort((a,b) => a.ra - b.ra).forEach((o, i) => {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = `${o.name} (${o.constel})`;
+        select.appendChild(opt);
+        tbody.innerHTML += `<tr><td><strong>${o.name}</strong></td><td>${o.type}</td><td>${o.constel}</td><td>${o.mag}</td><td>${o.dist}</td><td>${o.bio}</td></tr>`;
+    });
+
+    document.getElementById('dateInput').valueAsDate = new Date();
+
+    function formatHMS(deg) {
+        const tot = Math.round(Math.abs(deg) / 15 * 3600);
+        const hh = Math.floor(tot / 3600);
+        const mm = Math.floor((tot % 3600) / 60);
+        const ss = tot % 60;
+        return `${deg < 0 ? '-' : ''}${hh}h ${mm}m ${ss}s`;
+    }
+
+    function calculate() {
+        const dateVal = document.getElementById('dateInput').value;
+        const timeVal = document.getElementById('timeInput').value;
+        const obj = objects[select.value];
+
+        const localDate = new Date(`${dateVal}T${timeVal}`);
+        const utcHours = localDate.getUTCHours() + localDate.getUTCMinutes()/60 + localDate.getUTCSeconds()/3600;
+        
+        const d = (localDate.getTime() - new Date('2000-01-01T12:00:00Z').getTime()) / 86400000;
+        let lst = (100.46 + 0.985647 * d + LON + (15 * utcHours)) % 360;
+        if (lst < 0) lst += 360;
+
+        let ha = lst - obj.ra;
+        if (ha < -180) ha += 360;
+        if (ha > 180) ha -= 360;
+
+        let phi = LAT * TO_RAD;
+        let dec = obj.dec * TO_RAD;
+        let h_ang = ha * TO_RAD;
+
+        let sin_alt = Math.sin(dec) * Math.sin(phi) + Math.cos(dec) * Math.cos(phi) * Math.cos(h_ang);
+        let alt = Math.asin(sin_alt) * TO_DEG;
+
+        let cos_az = (Math.sin(dec) - Math.sin(alt * TO_RAD) * Math.sin(phi)) / (Math.cos(alt * TO_RAD) * Math.cos(phi));
+        let az = Math.acos(Math.max(-1, Math.min(1, cos_az))) * TO_DEG;
+        if (Math.sin(h_ang) > 0) az = 360 - az;
+
+        let transit_ha_diff = -ha / 15.041; 
+        let transitTime = new Date(localDate.getTime() + transit_ha_diff * 3600000);
+
+        const resDiv = document.getElementById('result');
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = `
+            <h2 style="margin:0; color:#9fa8da">${obj.name.toUpperCase()} - Analisi delle ore ${timeVal}</h2>
+            <div class="grid-results">
+                <div class="data-block">
+                    <label>Angolo Orario (HMS)</label>
+                    <span class="highlight">${formatHMS(ha)}</span>
+                </div>
+                <div class="data-block">
+                    <label>Altezza Attuale</label>
+                    <span class="highlight">${alt.toFixed(2)}°</span>
+                </div>
+                <div class="data-block">
+                    <label>Azimut (Sud=180°)</label>
+                    <span class="highlight">${az.toFixed(2)}°</span>
+                </div>
+                <div class="data-block">
+                    <label>Stato Transito</label>
+                    <span class="highlight">${ha > 0 ? 'Già tramontato a Ovest' : 'In avvicinamento a Est'}</span>
+                </div>
+                <div class="data-block" style="grid-column: span 2; border-color: #7986cb;">
+                    <label>Passaggio al Meridiano</label>
+                    A San Giorgio del Sannio oggi transita alle: <span class="highlight" style="font-size:1.4em">${transitTime.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}</span><br>
+                    Altezza massima al transito: <span class="highlight">${(90 - Math.abs(LAT - obj.dec)).toFixed(2)}°</span>
+                </div>
+            </div>
+        `;
+        resDiv.scrollIntoView({behavior: 'smooth'});
+    }
+</script>
+
+</body>
+</html>
