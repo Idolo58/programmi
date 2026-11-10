@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Merkhet - Calcolatore Interattivo</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f8; color: #2d3436; padding: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #0984e3; border-bottom: 2px solid #74b9ff; padding-bottom: 10px; }
+        .section { background: #fdfdfd; border: 1px solid #dfe6e9; padding: 20px; margin-bottom: 25px; border-radius: 10px; }
+        h2 { color: #2d3436; font-size: 1.2em; margin-top: 0; border-left: 4px solid #0984e3; padding-left: 10px; }
+        .formula { background: #eef2f3; padding: 10px; border-radius: 5px; font-family: 'Courier New', monospace; font-weight: bold; color: #d63031; margin-bottom: 15px; display: inline-block; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: end; }
+        label { display: block; font-size: 0.9em; font-weight: bold; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #b2bec3; border-radius: 5px; box-sizing: border-box; }
+        .result-box { margin-top: 15px; padding: 15px; background: #55efc4; border-radius: 5px; font-weight: bold; text-align: center; font-size: 1.1em; }
+        .note { font-size: 0.85em; color: #636e72; font-style: italic; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Calcolatore Interattivo Merkhet</h1>
+    <p>Utilizza i calcolatori sottostanti per analizzare le misure del tuo strumento o per calcolare l'altezza di un astro. <em>Nota: alla latitudine 41°, la Stella Polare ha un'altezza (h) di circa 41°.</em></p>
+
+    <!-- 1. CALCOLO h -->
+    <div class="section">
+        <h2>1. Calcolare l'altezza dell'astro (h)</h2>
+        <div class="formula">h = arctan((a2 - a1) / d)</div>
+        <div class="grid">
+            <div>
+                <label>Mirino a1 (cm)</label>
+                <input type="number" id="h_a1" value="100" oninput="calcH()">
+            </div>
+            <div>
+                <label>Segnalino a2 (cm)</label>
+                <input type="number" id="h_a2" value="150" oninput="calcH()">
+            </div>
+            <div>
+                <label>Distanza d (cm)</label>
+                <input type="number" id="h_d" value="100" oninput="calcH()">
+            </div>
+        </div>
+        <div class="result-box" id="res_h">Altezza astro: 26.57°</div>
+    </div>
+
+    <!-- 2. CALCOLO a2 -->
+    <div class="section">
+        <h2>2. Posizione del segnalino sul filo (a2)</h2>
+        <div class="formula">a2 = a1 + (d * tan(h))</div>
+        <div class="grid">
+            <div>
+                <label>Altezza astro h (°)</label>
+                <input type="number" id="a2_h" value="41" oninput="calcA2()">
+            </div>
+            <div>
+                <label>Mirino a1 (cm)</label>
+                <input type="number" id="a2_a1" value="100" oninput="calcA2()">
+            </div>
+            <div>
+                <label>Distanza d (cm)</label>
+                <input type="number" id="a2_d" value="50" oninput="calcA2()">
+            </div>
+        </div>
+        <div class="result-box" id="res_a2">Posizione segnalino: 143.46 cm</div>
+    </div>
+
+    <!-- 3. CALCOLO d -->
+    <div class="section">
+        <h2>3. Calcolare la distanza necessaria (d)</h2>
+        <div class="formula">d = (a2 - a1) / tan(h)</div>
+        <div class="grid">
+            <div>
+                <label>Altezza astro h (°)</label>
+                <input type="number" id="d_h" value="41" oninput="calcD()">
+            </div>
+            <div>
+                <label>Mirino a1 (cm)</label>
+                <input type="number" id="d_a1" value="100" oninput="calcD()">
+            </div>
+            <div>
+                <label>Segnalino a2 (cm)</label>
+                <input type="number" id="d_a2" value="150" oninput="calcD()">
+            </div>
+        </div>
+        <div class="result-box" id="res_d">Distanza necessaria: 57.52 cm</div>
+    </div>
+
+    <!-- 4. CALCOLO a1 -->
+    <div class="section">
+        <h2>4. Calcolare l'altezza del mirino (a1)</h2>
+        <div class="formula">a1 = a2 - (d * tan(h))</div>
+        <div class="grid">
+            <div>
+                <label>Altezza astro h (°)</label>
+                <input type="number" id="a1_h" value="41" oninput="calcA1()">
+            </div>
+            <div>
+                <label>Distanza d (cm)</label>
+                <input type="number" id="a1_d" value="60" oninput="calcA1()">
+            </div>
+            <div>
+                <label>Segnalino a2 (cm)</label>
+                <input type="number" id="a1_a2" value="152" oninput="calcA1()">
+            </div>
+        </div>
+        <div class="result-box" id="res_a1">Altezza mirino: 99.84 cm</div>
+    </div>
+
+    <p class="note">Creato per l'esperimento "Rete di Eratostene" - Latitudine 41° N</p>
+    <p class="note">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+</div>
+
+<script>
+    function toRad(deg) { return deg * (Math.PI / 180); }
+    function toDeg(rad) { return rad * (180 / Math.PI); }
+
+    function calcH() {
+        let a1 = parseFloat(document.getElementById('h_a1').value);
+        let a2 = parseFloat(document.getElementById('h_a2').value);
+        let d = parseFloat(document.getElementById('h_d').value);
+        let h = toDeg(Math.atan((a2 - a1) / d));
+        document.getElementById('res_h').innerText = "Altezza astro: " + h.toFixed(2) + "°";
+    }
+
+    function calcA2() {
+        let h = parseFloat(document.getElementById('a2_h').value);
+        let a1 = parseFloat(document.getElementById('a2_a1').value);
+        let d = parseFloat(document.getElementById('a2_d').value);
+        let a2 = a1 + (d * Math.tan(toRad(h)));
+        document.getElementById('res_a2').innerText = "Posizione segnalino: " + a2.toFixed(2) + " cm";
+    }
+
+    function calcD() {
+        let h = parseFloat(document.getElementById('d_h').value);
+        let a1 = parseFloat(document.getElementById('d_a1').value);
+        let a2 = parseFloat(document.getElementById('d_a2').value);
+        let d = (a2 - a1) / Math.tan(toRad(h));
+        document.getElementById('res_d').innerText = "Distanza necessaria: " + d.toFixed(2) + " cm";
+    }
+
+    function calcA1() {
+        let h = parseFloat(document.getElementById('a1_h').value);
+        let d = parseFloat(document.getElementById('a1_d').value);
+        let a2 = parseFloat(document.getElementById('a1_a2').value);
+        let a1 = a2 - (d * Math.tan(toRad(h)));
+        document.getElementById('res_a1').innerText = "Altezza mirino: " + a1.toFixed(2) + " cm";
+    }
+</script>
+
+</body>
+</html>
