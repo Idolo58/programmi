@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bussola Solare Interattiva - San Giorgio del Sannio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --accent: #27ae60; --dark: #2c3e50; --light: #f4f7f6; --gold: #d4af37; --sun: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; font-size: 1.6em; }
+        .subtitle { text-align: center; font-size: 0.9em; margin-bottom: 20px; color: #7f8c8d; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background-color: var(--accent); border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 1.1em; }
+        
+        /* Stile Risultati e Bussola */
+        .result-box { margin-top: 20px; padding: 20px; background: #ebf9f1; border-radius: 10px; display: none; text-align: center; }
+        .compass-container { position: relative; width: 200px; height: 200px; margin: 20px auto; border: 4px solid var(--dark); border-radius: 50%; background: white; transition: transform 0.5s ease; }
+        .compass-label { position: absolute; font-weight: bold; font-size: 1.2em; color: var(--dark); }
+        .label-n { top: 5px; left: 50%; transform: translateX(-50%); }
+        .label-s { bottom: 5px; left: 50%; transform: translateX(-50%); }
+        .label-e { right: 10px; top: 50%; transform: translateY(-50%); }
+        .label-w { left: 10px; top: 50%; transform: translateY(-50%); }
+        
+        #sun-needle { position: absolute; width: 4px; height: 100px; background: var(--sun); bottom: 50%; left: calc(50% - 2px); transform-origin: bottom; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2; }
+        #sun-needle::before { content: '☀️'; position: absolute; top: -20px; left: -10px; font-size: 20px; }
+        
+        #shadow-needle { position: absolute; width: 6px; height: 80px; background: rgba(44, 62, 80, 0.3); bottom: 50%; left: calc(50% - 3px); transform-origin: bottom; transition: transform 0.8s; z-index: 1; }
+
+        .hour-angle-info { margin-top: 15px; padding: 12px; background: #fff9e6; border-radius: 8px; border-left: 4px solid var(--gold); font-size: 0.9em; text-align: left; }
+    .credits { text-align: center; margin-top: 28px; font-size: 0.85rem; color: #7a8499; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fas fa-regular fa-compass"></i> Bussola Solare</h1>
+    <div class="subtitle">San Giorgio del Sannio (BN)</div>
+
+    <div class="input-group">
+        <label><i class="fas fa-calendar-day icon" style="color:var(--accent)"></i>Giorno</label>
+        <input type="date" id="date" value="2026-05-02">
+    </div>
+
+    <div class="input-group">
+        <label><i class="fas fa-clock icon" style="color:var(--accent)"></i>Ora Civile Locale</label>
+        <input type="time" id="time" value="12:00">
+    </div>
+
+    <button onclick="calculateAzimuth()">CALCOLA POSIZIONE</button>
+
+    <div id="result" class="result-box">
+        <div id="text-res"></div>
+        
+        <div class="compass-container">
+            <div class="compass-label label-n">N</div>
+            <div class="compass-label label-e">E</div>
+            <div class="compass-label label-s">S</div>
+            <div class="compass-label label-w">W</div>
+            <div id="sun-needle"></div>
+            <div id="shadow-needle"></div>
+        </div>
+
+        <div id="hour-info" class="hour-angle-info"></div>
+    </div>
+    <p class="credits">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+</div>
+
+<script>
+    const LAT = 41.07;
+    const LON = 14.856;
+
+    function solarTime(dateStr, timeStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const [hh, mm] = timeStr.split(':').map(Number);
+        const civil = new Date(y, m - 1, d, hh, mm);
+        const tz = -civil.getTimezoneOffset() / 60;   // ore da UTC: 1 inverno, 2 ora legale
+        const day = Math.round((new Date(y, m - 1, d) - new Date(y, 0, 0)) / 86400000);
+        const B = 2 * Math.PI / 365 * (day - 81);
+        const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);  // minuti
+        const ast = hh + mm / 60 - tz + LON / 15 + eot / 60;                           // ora solare vera
+        return { day, ast };
+    }
+
+
+    function calculateAzimuth() {
+        const { day, ast } = solarTime(document.getElementById('date').value, document.getElementById('time').value);
+        const decl = 23.45 * Math.sin((2 * Math.PI / 365) * (day - 81));
+
+        // Angolo orario dall'ora solare vera (fuso, ora legale, longitudine ed equazione del tempo)
+        let hourAngleDeg = (ast - 12) * 15;
+        hourAngleDeg = ((hourAngleDeg + 180) % 360 + 360) % 360 - 180;
+        
+        const omega = hourAngleDeg * Math.PI / 180;
+        const phi = LAT * Math.PI / 180;
+        const delta = decl * Math.PI / 180;
+
+        const sinH = Math.sin(phi) * Math.sin(delta) + Math.cos(phi) * Math.cos(delta) * Math.cos(omega);
+        const cosH = Math.sqrt(Math.max(0, 1 - sinH * sinH));
+
+        let cosA = (Math.sin(delta) - sinH * Math.sin(phi)) / (cosH * Math.cos(phi));
+        cosA = Math.max(-1, Math.min(1, cosA));
+        
+        let azDeg = Math.acos(cosA) * 180 / Math.PI;
+        if (hourAngleDeg > 0) azDeg = 360 - azDeg;
+
+        const shadowDeg = (azDeg + 180) % 360;
+
+        // Visualizzazione
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('text-res').innerHTML = `
+            <strong>Azimut:</strong> ${azDeg.toFixed(1)}° | 
+            <strong>Ombra:</strong> ${shadowDeg.toFixed(1)}°
+        `;
+
+        // Animazione Bussola
+        document.getElementById('sun-needle').style.transform = `rotate(${azDeg}deg)`;
+        document.getElementById('shadow-needle').style.transform = `rotate(${shadowDeg}deg)`;
+
+        // Messaggio tempo
+        const absAngle = Math.abs(hourAngleDeg);
+        const relMinutes = Math.round(absAngle * 4);
+        const hRel = Math.floor(relMinutes / 60);
+        const mRel = relMinutes % 60;
+        let timeMsg = hourAngleDeg < 0 ? `Mancano ${hRel}h e ${mRel}m al mezzogiorno.` : `Mezzogiorno passato da ${hRel}h e ${mRel}m.`;
+        if(Math.abs(hourAngleDeg) < 0.1) timeMsg = "È il mezzogiorno solare!";
+        if (sinH < 0) timeMsg += " Il Sole è sotto l'orizzonte.";
+
+        document.getElementById('hour-info').innerHTML = `
+            <i class="fas fa-hourglass-half"></i> <strong>Angolo Orario:</strong> ${hourAngleDeg.toFixed(1)}°<br>
+            <small>${timeMsg}</small>
+        `;
+    }
+</script>
+
+</body>
+</html>
