@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Solare - San Giorgio del Sannio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #f39c12; --secondary: #2c3e50; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--light); color: var(--secondary); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
+        .subtitle { text-align: center; font-size: 0.9em; margin-bottom: 20px; color: #7f8c8d; }
+        .lang-btn { background: none; border: 1px solid var(--primary); color: var(--primary); padding: 5px 15px; cursor: pointer; border-radius: 5px; float: right; margin-bottom: 10px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.95em; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
+        button#main-calc { width: 100%; padding: 15px; background-color: var(--primary); border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        .result-box { margin-top: 20px; padding: 20px; background: #fff9f0; border: 2px dashed var(--primary); border-radius: 10px; display: none; }
+        .formula-section { margin-top: 25px; font-size: 0.8em; border-top: 1px solid #eee; padding-top: 15px; }
+        .icon { color: var(--primary); width: 20px; text-align: center; margin-right: 10px; }
+    .credits { text-align: center; margin-top: 28px; font-size: 0.85rem; color: #7a8499; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="lang-btn" onclick="toggleLang()" id="btn-lang">English Version</button>
+    
+    <h1 id="title"><i class="fas fa-sun"></i> Calcolatore Solare</h1>
+    <div class="subtitle">San Giorgio del Sannio (BN)</div>
+
+    <div class="input-group">
+        <label id="lbl-mode">Cosa vuoi scoprire?</label>
+        <select id="mode" onchange="updateUI()">
+            <option value="height">Calcola Altezza Sole e Ombra</option>
+            <option value="gnomon">Calcola Altezza dello Stilo</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label id="lbl-date"><i class="fas fa-calendar-day icon"></i>Scegli il Giorno</label>
+        <input type="date" id="date" value="2026-05-02">
+    </div>
+
+    <div class="input-group" id="group-time">
+        <label id="lbl-time"><i class="fas fa-clock icon"></i>Ora Civile (formato 24h)</label>
+        <input type="time" id="time" value="12:00">
+    </div>
+
+    <div class="input-group" id="group-stilo">
+        <label id="lbl-stilo"><i class="fas fa-ruler-vertical icon"></i>Altezza dello Stilo (cm)</label>
+        <input type="number" id="stilo" placeholder="Esempio: 10" value="10">
+    </div>
+
+    <div class="input-group" id="group-ombra" style="display:none;">
+        <label id="lbl-ombra"><i class="fas fa-ruler-horizontal icon"></i>Lunghezza dell'Ombra misurata (cm)</label>
+        <input type="number" id="ombra" placeholder="Inserisci la misura">
+    </div>
+
+    <button id="main-calc" onclick="calculate()">ESEGUI CALCOLO</button>
+
+    <div id="result" class="result-box"></div>
+
+    <div class="formula-section">
+        <strong id="lbl-form-title">Formule Scientifiche applicate:</strong>
+        <p id="formula-text">
+            1. Altezza Sole: h = arcsin( sin φ · sin δ + cos φ · cos δ · cos ω )<br>
+            2. Lunghezza Ombra: L = H / tan(h)<br>
+            (φ latitudine, δ declinazione, ω angolo orario, H altezza dello stilo)
+        </p>
+    </div>
+    <p class="credits">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+</div>
+
+<script>
+    let currentLang = 'it';
+    const LAT = 41.07; // San Giorgio del Sannio
+    const LNG = 14.856;
+    const LON = LNG;
+
+    const translations = {
+        it: {
+            btnLang: "English Version",
+            title: "Calcolatore Solare",
+            mode: "Cosa vuoi scoprire?",
+            opt1: "Calcola Altezza Sole e Ombra",
+            opt2: "Calcola Altezza dello Stilo",
+            date: "Scegli il Giorno",
+            time: "Ora Civile (formato 24h)",
+            stilo: "Altezza dello Stilo (cm)",
+            ombra: "Lunghezza dell'Ombra misurata (cm)",
+            btnCalc: "ESEGUI CALCOLO",
+            formTitle: "Formule Scientifiche applicate:",
+            resAlt: "Altezza del Sole:",
+            resOmb: "Ombra prevista:",
+            resSti: "Altezza stilo calcolata:"
+        },
+        en: {
+            btnLang: "Versione Italiana",
+            title: "Solar Calculator",
+            mode: "What to discover?",
+            opt1: "Calculate Sun Altitude & Shadow",
+            opt2: "Calculate Gnomon Height",
+            date: "Choose the Date",
+            time: "Civil Time (24h format)",
+            stilo: "Gnomon Height (cm)",
+            ombra: "Measured Shadow Length (cm)",
+            btnCalc: "RUN CALCULATION",
+            formTitle: "Scientific Formulas used:",
+            resAlt: "Sun Altitude:",
+            resOmb: "Expected shadow:",
+            resSti: "Calculated gnomon height:"
+        }
+    };
+
+    function toggleLang() {
+        currentLang = currentLang === 'it' ? 'en' : 'it';
+        const t = translations[currentLang];
+        document.getElementById('btn-lang').innerText = t.btnLang;
+        document.getElementById('title').innerHTML = `<i class="fas fa-sun"></i> ${t.title}`;
+        document.getElementById('lbl-mode').innerText = t.mode;
+        document.getElementById('mode').options[0].text = t.opt1;
+        document.getElementById('mode').options[1].text = t.opt2;
+        document.getElementById('lbl-date').innerHTML = `<i class="fas fa-calendar-day icon"></i>${t.date}`;
+        document.getElementById('lbl-time').innerHTML = `<i class="fas fa-clock icon"></i>${t.time}`;
+        document.getElementById('lbl-stilo').innerHTML = `<i class="fas fa-ruler-vertical icon"></i>${t.stilo}`;
+        document.getElementById('lbl-ombra').innerHTML = `<i class="fas fa-ruler-horizontal icon"></i>${t.ombra}`;
+        document.getElementById('main-calc').innerText = t.btnCalc;
+        document.getElementById('lbl-form-title').innerText = t.formTitle;
+    }
+
+    function updateUI() {
+        const mode = document.getElementById('mode').value;
+        document.getElementById('group-stilo').style.display = (mode === 'height') ? 'block' : 'none';
+        document.getElementById('group-ombra').style.display = (mode === 'gnomon') ? 'block' : 'none';
+    }
+
+    function solarTime(dateStr, timeStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const [hh, mm] = timeStr.split(':').map(Number);
+        const civil = new Date(y, m - 1, d, hh, mm);
+        const tz = -civil.getTimezoneOffset() / 60;   // ore da UTC: 1 inverno, 2 ora legale
+        const day = Math.round((new Date(y, m - 1, d) - new Date(y, 0, 0)) / 86400000);
+        const B = 2 * Math.PI / 365 * (day - 81);
+        const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);  // minuti
+        const ast = hh + mm / 60 - tz + LON / 15 + eot / 60;                           // ora solare vera
+        return { day, ast };
+    }
+
+    function calculate() {
+        const mode = document.getElementById('mode').value;
+        const { day, ast } = solarTime(document.getElementById('date').value, document.getElementById('time').value);
+
+        // Declinazione (δ)
+        const decl = 23.45 * Math.sin((2 * Math.PI / 365) * (day - 81));
+
+        // Angolo orario (ω) dall'ora solare vera (fuso, ora legale, longitudine ed equazione del tempo)
+        let hrAngle = (ast - 12) * 15;
+        hrAngle = ((hrAngle + 180) % 360 + 360) % 360 - 180;
+
+        // Conversione in radianti
+        const phi = LAT * Math.PI / 180;
+        const delta = decl * Math.PI / 180;
+        const omega = hrAngle * Math.PI / 180;
+
+        // Formula Altezza Sole (h)
+        const sinH = Math.sin(phi) * Math.sin(delta) + Math.cos(phi) * Math.cos(delta) * Math.cos(omega);
+        const hRad = Math.asin(sinH);
+        const hDeg = hRad * 180 / Math.PI;
+
+        const resBox = document.getElementById('result');
+        resBox.style.display = 'block';
+        const t = translations[currentLang];
+
+        if (mode === 'height') {
+            const hStilo = parseFloat(document.getElementById('stilo').value);
+            const lOmbra = hStilo / Math.tan(hRad);
+            resBox.innerHTML = `<strong>${t.resAlt}</strong> ${hDeg.toFixed(1)}°<br>
+                                <strong>${t.resOmb}</strong> ${hDeg > 0.1 ? lOmbra.toFixed(2) + ' cm' : 'Sole sotto orizzonte'}`;
+        } else {
+            const lOmbraInput = parseFloat(document.getElementById('ombra').value);
+            const hStiloCalc = lOmbraInput * Math.tan(hRad);
+            resBox.innerHTML = `<strong>${t.resAlt}</strong> ${hDeg.toFixed(1)}°<br>
+                                <strong>${t.resSti}</strong> ${hDeg > 0.1 ? hStiloCalc.toFixed(2) + ' cm' : 'Sole sotto orizzonte'}`;
+        }
+    }
+</script>
+
+</body>
+</html>
