@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moon Solver Pro - San Giorgio del Sannio</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+    <style>
+        :root { --accent: #00d4ff; --bg: #05070a; --card: #10141d; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: #e0e0e0; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { background: var(--card); max-width: 900px; width: 100%; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #222; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: var(--accent); margin-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .input-box { display: flex; flex-direction: column; }
+        label { font-size: 0.8rem; margin-bottom: 8px; color: #aaa; }
+        input { background: #1a202c; border: 1px solid #333; padding: 12px; color: white; border-radius: 8px; outline: none; }
+        button { background: var(--accent); color: #000; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #00b4db; transform: scale(1.02); }
+        #result { margin-top: 30px; padding: 25px; background: #161b26; border-radius: 12px; border-left: 5px solid var(--accent); display: none; }
+        .formula-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; font-size: 0.85rem; line-height: 1.6; }
+        .math-block { background: #000; padding: 15px; border-radius: 10px; margin: 15px 0; overflow-x: auto; color: #00d4ff; }
+        .highlight { color: var(--accent); font-weight: bold; }
+    .credits { text-align: center; margin-top: 28px; font-size: 0.85rem; color: #7a8499; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🌙 Moon Time & Hour Angle Solver</h1>
+        <p>Location: San Giorgio del Sannio (BN) | 41.07°N 14.85°E</p>
+    </div>
+    
+    <div class="grid">
+        <div class="input-box"><label>Data / Date</label><input type="date" id="datePicker"></div>
+        <div class="input-box"><label>Altezza / Alt (°)</label><input type="number" id="alt" value="35.00" step="0.01"></div>
+        <div class="input-box"><label>Azimut / Azi (°)</label><input type="number" id="azi" value="180.00" step="0.01"></div>
+    </div>
+
+    <button onclick="solveMoon()">Calcola Ora e Angolo Orario / Calculate</button>
+
+    <div id="result">
+        <h3>Risultati / Results</h3>
+        <p id="resTime" style="font-size: 1.5rem; margin: 10px 0;"></p>
+        <p id="resHA" style="font-size: 1.1rem; color: #ffd700;"></p>
+        <p id="resPhase"></p>
+    </div>
+
+    <div class="formula-section">
+        <h3>Formule per l'Ora Civile / Civil Time Formulas</h3>
+        <p>1. <b>Angolo Orario ($H$):</b> Indica la distanza angolare della Luna dal meridiano locale.</p>
+        <div class="math-block">
+            $$H = \arccos\left(\frac{\sin(h) - \sin(\phi)\sin(\delta)}{\cos(\phi)\cos(\delta)}\right)$$
+        </div>
+        
+        <p>2. <b>Tempo Siderale Locale (LST):</b> Somma dell'Ascensione Retta ($\alpha$) e dell'Angolo Orario.</p>
+        <div class="math-block">
+            $$LST = \alpha + H$$
+        </div>
+
+        <p>3. <b>Tempo Universale (UT) e Ora Civile:</b> Si converte il LST in Tempo di Greenwich e si corregge per l'equazione del tempo siderale e il fuso orario.</p>
+        <div class="math-block">
+            $$UT \approx \frac{LST - \text{Long} - GMST_0}{1.0027379}$$
+            $$\text{Ora Civile} = UT + \text{Fuso Orario (Offset)}$$
+        </div>
+        <p><small>*Nota: lo script cerca l'istante che corrisponde ad altezza e azimut inseriti con una scansione numerica (un controllo al secondo) sulla posizione lunare.</small></p>
+    </div>
+    <p class="credits">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+</div>
+
+<script>
+    const LAT = 41.0700; 
+    const LON = 14.8500;
+    const PHI = LAT * Math.PI / 180;
+
+    document.getElementById('datePicker').valueAsDate = new Date();
+
+    function solveMoon() {
+        const [yy, mm, dd] = document.getElementById('datePicker').value.split('-').map(Number);
+        const selectedDate = new Date(yy, mm - 1, dd);
+        const targetAlt = parseFloat(document.getElementById('alt').value) * (Math.PI / 180);
+        const targetAzi = parseFloat(document.getElementById('azi').value) * (Math.PI / 180);
+
+        let bestMatch = null;
+        let minError = Infinity;
+        let finalHA = 0;
+
+        // Scansione ad alta risoluzione (1 secondo)
+        for (let s = 0; s < 86400; s += 1) {
+            let testTime = new Date(selectedDate);
+            testTime.setHours(0, 0, s);
+            
+            let pos = SunCalc.getMoonPosition(testTime, LAT, LON);
+            
+            // Correzione Azimut (SunCalc 0 = Sud, Stellarium 0 = Nord)
+            let currentAzi = (pos.azimuth + Math.PI) % (2 * Math.PI);
+            
+            let aziDiff = Math.abs(currentAzi - targetAzi);
+            aziDiff = Math.min(aziDiff, 2 * Math.PI - aziDiff);
+            let altDiff = Math.abs(pos.altitude - targetAlt);
+            let totalError = aziDiff + altDiff;
+
+            if (totalError < minError) {
+                minError = totalError;
+                bestMatch = testTime;
+                // Angolo orario H (ore) da altezza e azimut (azimut SunCalc: da Sud, positivo verso Ovest)
+                finalHA = Math.atan2(Math.cos(pos.altitude) * Math.sin(pos.azimuth),
+                    Math.sin(pos.altitude) * Math.cos(PHI) + Math.cos(pos.altitude) * Math.cos(pos.azimuth) * Math.sin(PHI)) * (12 / Math.PI);
+            }
+        }
+
+        const illumination = SunCalc.getMoonIllumination(bestMatch);
+        
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('resTime').innerHTML = `Ora Civile: <span class="highlight">${bestMatch.toLocaleTimeString('it-IT')}</span>`;
+        
+        // Formattazione Angolo Orario (HA)
+        let haDisplay = (finalHA).toFixed(2);
+        let haText = finalHA > 0 ? `Passato il meridiano da ${haDisplay} ore` : `Al meridiano tra ${Math.abs(haDisplay)} ore`;
+        if (Math.abs(finalHA) < 0.05) haText = "La Luna è al Meridiano (Culminazione)";
+        
+        document.getElementById('resHA').innerHTML = `Angolo Orario (H): ${haDisplay}h <br><small>${haText}</small>`;
+        
+        const phase = getPhaseName(illumination.phase);
+        document.getElementById('resPhase').innerHTML = `
+            <strong>Fase:</strong> ${phase.it} (${(illumination.fraction * 100).toFixed(1)}%) / ${phase.en}
+        `;
+    }
+
+    function getPhaseName(p) {
+        if (p < 0.02 || p > 0.98) return {it: "Luna Nuova", en: "New Moon"};
+        if (p < 0.25) return {it: "Luna Crescente", en: "Waxing Crescent"};
+        if (p < 0.30) return {it: "Primo Quarto", en: "First Quarter"};
+        if (p < 0.48) return {it: "Gibbosa Crescente", en: "Waxing Gibbous"};
+        if (p < 0.52) return {it: "Luna Piena", en: "Full Moon"};
+        if (p < 0.75) return {it: "Gibbosa Calante", en: "Waning Gibbous"};
+        if (p < 0.80) return {it: "Ultimo Quarto", en: "Last Quarter"};
+        return {it: "Luna Calante", en: "Waning Crescent"};
+    }
+</script>
+
+</body>
+</html>
