@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ora Solare Vera Sannio</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; text-align: center; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; max-width: 400px; margin: auto; }
+        .ora-civile { font-size: 1.2rem; color: #666; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .ora-civile span { font-weight: bold; color: #000; }
+        .lista-comuni { text-align: left; }
+        .comune-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
+        .capofila { background: #e3f2fd; padding: 15px 10px; border-radius: 8px; border: 2px solid #2196f3; margin-bottom: 15px; }
+        .nome { font-weight: bold; font-size: 0.95rem; }
+        .ora-solare { font-family: monospace; font-weight: bold; font-size: 1.1rem; color: #d32f2f; }
+        .label { font-size: 0.8rem; color: #777; display: block; }
+        .credits { margin-top: 25px; font-size: 0.85rem; color: #555; border-top: 1px solid #eee; padding-top: 12px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="ora-civile">
+        <span class="label">ORA DEL TUO OROLOGIO (CIVILE)</span>
+        <span id="civile">00:00:00</span>
+    </div>
+
+    <div class="lista-comuni">
+        <!-- CAPOFILA -->
+        <div class="comune-row capofila">
+            <div>
+                <span class="label">CAPOFILA</span>
+                <span class="nome">SAN GIORGIO DEL SANNIO</span>
+            </div>
+            <span class="ora-solare" id="ora-sangiorgio">00:00:00</span>
+        </div>
+
+        <!-- ALTRI COMUNI -->
+        <div id="altri-comuni"></div>
+    </div>
+
+    <div class="credits">
+        Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)
+    </div>
+</div>
+
+<script>
+    const comuni = [
+        { n: "BENEVENTO", l: 14.7761 },
+        { n: "MONTESARCHIO", l: 14.6394 },
+        { n: "SANT'AGATA DE' GOTI", l: 14.5000 },
+        { n: "TELESE TERME", l: 14.5231 },
+        { n: "APICE", l: 14.9333 },
+        { n: "SAN BARTOLOMEO IN GALDO", l: 15.0151 },
+        { n: "GUARDIA SANFRAMONDI", l: 14.5964 },
+        { n: "AIROLA", l: 14.5584 },
+        { n: "CUSANO MUTRI", l: 14.5050 },
+        { n: "MORCONE", l: 14.6677 },
+        { n: "PONTELANDOLFO", l: 14.6917 }
+    ];
+
+    function calcolaEOT(giorno) {
+        const b = (360 / 365) * (giorno - 81);
+        const br = b * Math.PI / 180;
+        return 9.87 * Math.sin(2 * br) - 7.53 * Math.cos(br) - 1.5 * Math.sin(br);
+    }
+
+    function aggiorna() {
+        const oraLocale = new Date();
+        document.getElementById('civile').innerText = oraLocale.toLocaleTimeString('it-IT');
+
+        const inizioAnno = new Date(oraLocale.getFullYear(), 0, 0);
+        const giornoAnno = Math.floor((oraLocale - inizioAnno) / 86400000);
+        const eot = calcolaEOT(giornoAnno);
+
+        function ottieniSolare(longitudine) {
+            let d = new Date(oraLocale.getTime());
+            const stdTimezoneOffset = new Date(d.getFullYear(), 0, 1).getTimezoneOffset();
+            const isDST = d.getTimezoneOffset() < stdTimezoneOffset;
+            if (isDST) d.setHours(d.getHours() - 1);
+
+            const corrTotale = ((longitudine - 15) * 4) + eot;
+            d.setSeconds(d.getSeconds() + (corrTotale * 60));
+            return d.toLocaleTimeString('it-IT');
+        }
+
+        document.getElementById('ora-sangiorgio').innerText = ottieniSolare(14.8564);
+
+        const contenitore = document.getElementById('altri-comuni');
+        if (contenitore.innerHTML === "") {
+            comuni.forEach((c, i) => {
+                contenitore.innerHTML += `
+                    <div class="comune-row">
+                        <span class="nome">${c.n}</span>
+                        <span class="ora-solare" id="ora-${i}">00:00:00</span>
+                    </div>`;
+            });
+        }
+
+        comuni.forEach((c, i) => {
+            document.getElementById(`ora-${i}`).innerText = ottieniSolare(c.l);
+        });
+    }
+
+    setInterval(aggiorna, 1000);
+    aggiorna();
+</script>
+
+</body>
+</html>
