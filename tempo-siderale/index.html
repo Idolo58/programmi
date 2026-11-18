@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tempo Siderale • San Giorgio del Sannio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
+        
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0b0c2a 0%, #1a1b4b 100%);
+            color: #e0f0ff;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1180px; margin: 0 auto; padding: 20px; }
+        
+        header { text-align: center; padding: 35px 0; border-bottom: 2px solid rgba(100, 200, 255, 0.3); }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            background: linear-gradient(90deg, #64c8ff, #a0f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid rgba(100, 200, 255, 0.25);
+        }
+        
+        .time-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.4rem;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-align: center;
+            margin: 18px 0;
+        }
+        .civil-time { color: #64ff9a; }
+        .sidereal-time { color: #ffd700; }
+        
+        .transit { 
+            background: rgba(255, 215, 0, 0.12); 
+            border: 1px solid #ffd700; 
+            text-align: center; 
+            padding: 22px; 
+            border-radius: 18px; 
+            margin-top: 20px; 
+        }
+        .star-name { font-size: 2.2rem; color: #ffd700; margin: 12px 0; }
+        .constellation { color: #88ccff; font-size: 1.4rem; }
+        
+        .lesson { 
+            background: rgba(255,255,255,0.07); 
+            padding: 28px; 
+            border-radius: 18px; 
+            line-height: 1.75; 
+            margin-top: 30px; 
+        }
+        .formula {
+            background: #000814;
+            padding: 22px;
+            border-radius: 12px;
+            font-family: monospace;
+            color: #64ff9a;
+            text-align: center;
+            margin: 18px 0;
+            border-left: 6px solid #64c8ff;
+        }
+        .credits{text-align:center;padding:30px 20px 40px;font-size:.85rem;opacity:.7;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>San Giorgio del Sannio</h1>
+            <p class="subtitle">41.068°N • 14.853°E • Tempo Siderale in Tempo Reale</p>
+        </header>
+
+        <div class="main-grid">
+            <div class="card">
+                <div class="label">🕒 Ora Civile (CET/CEST)</div>
+                <div id="civilTime" class="time-display civil-time">00:00:00</div>
+                
+                <div class="label" style="margin-top:30px;">🌌 Tempo Siderale Locale (LST)</div>
+                <div id="siderealTime" class="time-display sidereal-time">00:00:00</div>
+            </div>
+
+            <div class="card">
+                <div class="label">⭐ Oggetto al Meridiano (Transito)</div>
+                <div id="transit" class="transit">
+                    <div id="starName" class="star-name">—</div>
+                    <div id="constellation" class="constellation">—</div>
+                    <div id="raInfo" style="margin-top:15px; font-size:1rem; opacity:0.9;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lesson">
+            <h2>🌍 Differenza tra Tempo Civile e Tempo Siderale</h2>
+            <p><strong>Tempo Civile (Ora Legale):</strong> basato sul moto del Sole. Un giorno solare medio dura esattamente 24 ore.</p>
+            <p><strong>Tempo Siderale:</strong> basato sulla rotazione della Terra rispetto alle stelle fisse. Un giorno siderale dura 23h 56m 4s (circa 4 minuti più corto).</p>
+            
+            <div class="formula">
+                <strong>Formula LST (Tempo Siderale Locale)</strong><br><br>
+                LST = GMST + Longitudine / 15<br><br>
+                GMST ≈ 18.697374558 + 24.06570982441908 × D<br>
+                (D = giorni giuliani dal J2000)
+            </div>
+            <p>I valori RA sono J2000. Precisi per uso amatoriale.</p>
+        </div>
+        <p class="credits">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+    </div>
+
+    <script>
+        const LON = 14.853;
+        
+        // Database con 44 oggetti (stelle brillanti + deep sky)
+        const objects = [
+            {name: "Vega", const: "Lira", ra: 18.6156},
+            {name: "Altair", const: "Aquila", ra: 19.8464},
+            {name: "Deneb", const: "Cigno", ra: 20.6906},
+            {name: "Arturo", const: "Boote", ra: 14.2610},
+            {name: "Sirio", const: "Cane Maggiore", ra: 6.7525},
+            {name: "Betelgeuse", const: "Orione", ra: 5.9194},
+            {name: "Rigel", const: "Orione", ra: 5.2422},
+            {name: "Capella", const: "Auriga", ra: 5.2782},
+            {name: "Procione", const: "Cane Minore", ra: 7.655},
+            {name: "Polluce", const: "Gemelli", ra: 7.7553},
+            {name: "Aldebaran", const: "Toro", ra: 4.5986},
+            {name: "Antares", const: "Scorpione", ra: 16.490},
+            {name: "Spica", const: "Vergine", ra: 13.4197},
+            {name: "Regolo", const: "Leone", ra: 10.1395},
+            {name: "Polaris", const: "Orsa Minore", ra: 2.5302},
+            {name: "Algol", const: "Perseo", ra: 3.1367},
+            {name: "Hamal", const: "Ariete", ra: 2.1195},
+            {name: "Fomalhaut", const: "Acquario", ra: 22.9608},
+            {name: "Markab", const: "Pegaso", ra: 23.0794},
+            {name: "Alkaid", const: "Orsa Maggiore", ra: 13.7923},
+            {name: "Dubhe", const: "Orsa Maggiore", ra: 11.0617},
+            {name: "Castore", const: "Gemelli", ra: 7.576},
+            {name: "Bellatrix", const: "Orione", ra: 5.4206},
+            {name: "Saiph", const: "Orione", ra: 5.7958},
+            {name: "Mirfak", const: "Perseo", ra: 3.4056},
+            {name: "Alhena", const: "Gemelli", ra: 6.625},
+            {name: "Mirach", const: "Andromeda", ra: 1.1622},
+            {name: "Scheat", const: "Pegaso", ra: 23.0629},
+            {name: "Enif", const: "Pegaso", ra: 21.7361},
+            {name: "Almak", const: "Andromeda", ra: 2.0650},
+            
+            // Oggetti Cielo Profondo (Messier)
+            {name: "M31 (Galassia di Andromeda)", const: "Andromeda", ra: 0.7117},
+            {name: "M42 (Neb. Orione)", const: "Orione", ra: 5.5833},
+            {name: "M45 (Pleiadi)", const: "Toro", ra: 3.7833},
+            {name: "M44 (Alveare)", const: "Cancro", ra: 8.6667},
+            {name: "M13 (Ammasso Ercole)", const: "Ercole", ra: 16.695},
+            {name: "M5", const: "Serpente", ra: 15.3167},
+            {name: "M3", const: "Cani da Caccia", ra: 13.7033},
+            {name: "M51 (Galassia Vortice)", const: "Cani da Caccia", ra: 13.4983},
+            {name: "M57 (Neb. Anello)", const: "Lira", ra: 18.8931},
+            {name: "M27 (Neb. Manubrio)", const: "Volpetta", ra: 19.9833},
+            {name: "M81 (Galassia di Bode)", const: "Orsa Maggiore", ra: 9.9333},
+            {name: "M82", const: "Orsa Maggiore", ra: 9.95},
+            {name: "M33 (Galassia Triangolo)", const: "Triangolo", ra: 1.565},
+            {name: "M92", const: "Ercole", ra: 17.2833}
+        ];
+
+        function decimalToHMS(h) {
+            const tot = Math.round((((h % 24) + 24) % 24) * 3600) % 86400;
+            const hh = Math.floor(tot / 3600), mm = Math.floor((tot % 3600) / 60), ss = tot % 60;
+            return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+        }
+
+        function calculateGMST() {
+            const now = new Date();
+            let jd = 367 * now.getUTCFullYear() - Math.floor(7 * (now.getUTCFullYear() + Math.floor((now.getUTCMonth() + 10) / 12)) / 4) +
+                     Math.floor(275 * (now.getUTCMonth() + 1) / 9) + now.getUTCDate() + 1721013.5 +
+                     (now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600) / 24;
+            
+            let d = jd - 2451545.0;
+            let gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+            if (gmst < 0) gmst += 24;
+            return gmst;
+        }
+
+        function updateTimes() {
+            const now = new Date();
+            document.getElementById('civilTime').textContent = 
+                now.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+
+            let gmst = calculateGMST();
+            let lst = (gmst + LON / 15) % 24;
+            if (lst < 0) lst += 24;
+
+            document.getElementById('siderealTime').textContent = decimalToHMS(lst);
+
+            // Trova l'oggetto più vicino al meridiano
+            let closest = objects[0];
+            let minDiff = 24;
+            
+            objects.forEach(obj => {
+                let diff = Math.abs(obj.ra - lst);
+                if (diff > 12) diff = 24 - diff;
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = obj;
+                }
+            });
+
+            document.getElementById('starName').textContent = closest.name;
+            document.getElementById('constellation').textContent = closest.const;
+            document.getElementById('raInfo').innerHTML = 
+                `RA: ${decimalToHMS(closest.ra)}<br>` +
+                `Distanza dal meridiano: ${minDiff.toFixed(1)} ore`;
+        }
+
+        setInterval(updateTimes, 1000);
+        updateTimes();
+    </script>
+</body>
+</html>
