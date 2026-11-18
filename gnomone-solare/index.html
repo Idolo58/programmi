@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☀️ Gnomone Solare - Declinazione del Sole</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #ff8c42);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.9em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 25px rgba(255, 200, 0, 0.9);
+        }
+        .subtitle { text-align: center; font-size: 1.4em; margin-bottom: 30px; opacity: 0.95; }
+        .card {
+            background: rgba(255,255,255,0.13);
+            padding: 24px;
+            border-radius: 18px;
+            margin: 28px 0;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+            margin: 30px 0;
+        }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.92);
+            color: #1e3c72;
+        }
+        button {
+            background: #ffcc00;
+            color: #1e3c72;
+            font-size: 1.5em;
+            font-weight: 600;
+            padding: 18px 55px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            display: block;
+            margin: 35px auto;
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.4);
+        }
+        button:hover { transform: scale(1.05); }
+        .result {
+            background: rgba(0,0,0,0.35);
+            padding: 28px;
+            border-radius: 16px;
+            margin-top: 25px;
+            border-left: 8px solid #ffcc00;
+            display: none;
+        }
+        .value {
+            font-size: 2.35em;
+            font-weight: 600;
+            color: #ffeb3b;
+        }
+        .emoji { font-size: 3.3em; margin-right: 15px; vertical-align: middle; }
+        .formula { font-size: 1em; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 18px 0; }
+        .credits{text-align:center;padding:30px 20px 40px;font-size:.85rem;opacity:.7;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☀️ Gnomone Solare</h1>
+        <p class="subtitle">Calcolo preciso della Declinazione del Sole • San Giorgio del Sannio (BN)</p>
+
+        <!-- SEZIONE DIDATTICA -->
+        <div class="card">
+            <h2>🌍 Cos'è la Declinazione Solare?</h2>
+            <p>La <strong>declinazione del Sole (δ)</strong> è l'angolo tra il Sole e il piano dell'equatore celeste. Varia durante l'anno tra -23,44° (solstizio d'inverno) e +23,44° (solstizio d'estate) a causa dell'inclinazione di 23,44° dell'asse terrestre.</p>
+            <p>Questo valore determina le stagioni, la durata del giorno e la posizione del Sole tra le costellazioni zodiacali.</p>
+        </div>
+
+        <div class="card">
+            <h2>♈ Relazione tra Declinazione, Mesi e Costellazioni Zodiacali</h2>
+            <p>Il Sole percorre l'eclittica e attraversa le costellazioni zodiacali. La declinazione ci permette di stimare dove si trova. Attenzione: sono le costellazioni vere, non i segni dell'astrologia, che per effetto della precessione degli equinozi sono slittati di circa un mese (a fine maggio il Sole è nel Toro, anche se il segno è quello dei Gemelli).</p>
+            <table style="width:100%; border-collapse:collapse; margin:15px 0; font-size:0.98em;">
+                <tr style="background:rgba(255,255,255,0.25);">
+                    <th style="padding:12px; text-align:left;">Declinazione</th>
+                    <th style="padding:12px; text-align:left;">Periodo (ogni valore ricorre due volte l'anno)</th>
+                    <th style="padding:12px; text-align:left;">Costellazione in cui si trova il Sole</th>
+                </tr>
+                <tr><td style="padding:10px;">+19° a +23.44°</td><td style="padding:10px;">Metà maggio - fine luglio</td><td style="padding:10px;">Toro, Gemelli, Cancro</td></tr>
+                <tr><td style="padding:10px;">+12° a +19°</td><td style="padding:10px;">Fine aprile - metà maggio / fine luglio - agosto</td><td style="padding:10px;">Ariete, Toro / Cancro, Leone</td></tr>
+                <tr><td style="padding:10px;">+5° a +12°</td><td style="padding:10px;">Aprile / fine agosto - inizio settembre</td><td style="padding:10px;">Pesci, Ariete / Leone</td></tr>
+                <tr><td style="padding:10px;">-5° a +5°</td><td style="padding:10px;">Metà marzo - inizio aprile / settembre - inizio ottobre</td><td style="padding:10px;">Pesci / Leone, Vergine</td></tr>
+                <tr><td style="padding:10px;">-12° a -5°</td><td style="padding:10px;">Fine febbraio - inizio marzo / ottobre</td><td style="padding:10px;">Acquario / Vergine</td></tr>
+                <tr><td style="padding:10px;">-23.44° a -12°</td><td style="padding:10px;">Fine ottobre - febbraio</td><td style="padding:10px;">Vergine, Bilancia, Scorpione, Ofiuco, Sagittario, Capricorno, Acquario</td></tr>
+            </table>
+        </div>
+
+        <!-- STRUMENTO -->
+        <div class="card">
+            <h2>📏 Misurazione con il Gnomone</h2>
+            <p><strong>Latitudine fissa:</strong> 41.07° N – San Giorgio del Sannio (BN)</p>
+            
+            <div class="input-group">
+                <div>
+                    <label for="altezza">Lunghezza stilo del gnomone (cm)</label>
+                    <input type="number" id="altezza" value="20" step="0.01">
+                </div>
+                <div>
+                    <label for="ombra">Lunghezza ombra (cm)</label>
+                    <input type="number" id="ombra" value="15" step="0.01">
+                </div>
+                <div>
+                    <label for="ora">Ora solare civile CET (hh:mm, senza ora legale)</label>
+                    <input type="time" id="ora" value="12:00">
+                </div>
+            </div>
+
+            <button onclick="calcola()">🌞 Calcola Declinazione</button>
+        </div>
+
+        <div id="risultati" class="result">
+            <h2>🌟 Risultati della Misurazione</h2>
+            <p><span class="emoji">📐</span> Altitudine del Sole: <span id="altitudine" class="value">—</span></p>
+            <p><span class="emoji">📍</span> Declinazione del Sole: <span id="declinazione" class="value">—</span></p>
+            <p><span class="emoji">🪐</span> Costellazione Zodiacale: <span id="costellazione" class="value">—</span></p>
+            <p><span class="emoji">📅</span> Periodo dell'anno: <span id="mese" class="value">—</span></p>
+            
+            <div class="formula" id="formula_box"></div>
+        </div>
+        <p class="credits">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+    </div>
+
+    <script>
+        const lat = 41.07; // San Giorgio del Sannio
+        const LON = 14.856;
+
+        function calcola() {
+            const h = parseFloat(document.getElementById('altezza').value);
+            const s = parseFloat(document.getElementById('ombra').value);
+            const oraStr = document.getElementById('ora').value;
+
+            if (!h || !s || !oraStr) {
+                alert("Inserisci tutti i valori richiesti.");
+                return;
+            }
+
+            // Altitudine del Sole
+            const alpha = Math.atan(h / s) * (180 / Math.PI);
+
+            // Ora solare media locale (correzione di longitudine rispetto al meridiano di 15°E) e angolo orario H
+            const [hh, mm] = oraStr.split(':').map(Number);
+            const t = hh + mm / 60 + (LON - 15) / 15;
+            const H = 15 * (t - 12); // gradi
+
+            // Declinazione: si risolve esattamente sin α = sin φ sin δ + cos φ cos H cos δ
+            const sinAlpha = Math.sin(alpha * Math.PI / 180);
+            const A = Math.sin(lat * Math.PI / 180);
+            const B = Math.cos(lat * Math.PI / 180) * Math.cos(H * Math.PI / 180);
+            const R = Math.hypot(A, B);
+            const x = sinAlpha / R;
+            if (Math.abs(x) > 1) { alert("Misura incoerente: controlli stilo, ombra e ora."); return; }
+            const psi = Math.atan2(B, A);
+            const norm = v => ((v + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+            const cand = [Math.asin(x) - psi, Math.PI - Math.asin(x) - psi].map(v => norm(v) * 180 / Math.PI);
+            let delta = Math.abs(cand[0]) <= Math.abs(cand[1]) ? cand[0] : cand[1];
+
+            // Limite fisico
+            delta = Math.max(Math.min(delta, 23.44), -23.44);
+
+            // Costellazione e periodo
+            let costellazione = "—", mese = "—";
+            if (delta > 19) { costellazione = "Toro / Gemelli / Cancro"; mese = "Metà maggio - fine luglio"; }
+            else if (delta > 12) { costellazione = "Ariete / Toro (primavera) • Cancro / Leone (estate)"; mese = "Fine aprile - metà maggio • fine luglio - agosto"; }
+            else if (delta > 5) { costellazione = "Pesci / Ariete (primavera) • Leone (fine estate)"; mese = "Aprile • fine agosto - inizio settembre"; }
+            else if (delta > -5) { costellazione = "Pesci (primavera) • Leone / Vergine (autunno)"; mese = "Metà marzo - inizio aprile • settembre - inizio ottobre"; }
+            else if (delta > -12) { costellazione = "Acquario (fine inverno) • Vergine (autunno)"; mese = "Fine febbraio - inizio marzo • ottobre"; }
+            else { costellazione = "Vergine / Bilancia / Scorpione / Ofiuco / Sagittario / Capricorno / Acquario"; mese = "Fine ottobre - febbraio"; }
+
+            // Output
+            document.getElementById('altitudine').textContent = alpha.toFixed(2) + "°";
+            document.getElementById('declinazione').textContent = delta.toFixed(3) + "°";
+            document.getElementById('costellazione').textContent = costellazione;
+            document.getElementById('mese').textContent = mese;
+            
+            document.getElementById('formula_box').innerHTML = `
+                Altitudine α = ${alpha.toFixed(2)}°<br>
+                Hour Angle H = ${H.toFixed(1)}°<br>
+                <strong>Declinazione δ ≈ ${delta.toFixed(3)}°</strong>
+            `;
+            document.getElementById('risultati').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
