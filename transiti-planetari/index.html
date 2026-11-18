@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transiti Planetari sul Sole</title>
+    <!-- Google Fonts per un look moderno e Sci-Fi -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #05050a;
+            --card-bg: rgba(15, 15, 30, 0.75);
+            --text-color: #e2e8f0;
+            --accent-mercury: #4facfe;
+            --accent-venus: #ff0844;
+            --glow: 0 0 15px rgba(79, 172, 254, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 2px 10px rgba(0,242,254,0.3));
+        }
+
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        button.active[data-filter="all"] { background: #64748b; border-color: #94a3b8; }
+        button.active[data-filter="mercurio"] { background: var(--accent-mercury); border-color: #00f2fe; box-shadow: 0 0 10px rgba(79,172,254,0.5); }
+        button.active[data-filter="venere"] { background: var(--accent-venus); border-color: #ff0844; box-shadow: 0 0 10px rgba(255,8,68,0.5); }
+
+        .timeline-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+        }
+
+        .card.mercurio::before { background-color: var(--accent-mercury); }
+        .card.venere::before { background-color: var(--accent-venus); }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card.mercurio:hover { border-color: rgba(79, 172, 254, 0.4); }
+        .card.venere:hover { border-color: rgba(255, 8, 68, 0.4); }
+
+        .info-main h2 {
+            font-size: 1.4rem;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .mercurio .badge { background: rgba(79, 172, 254, 0.2); color: #93c5fd; border: 1px solid rgba(79,172,254,0.4); }
+        .venere .badge { background: rgba(255, 8, 68, 0.2); color: #fca5a5; border: 1px solid rgba(255,8,68,0.4); }
+
+        .date-time {
+            font-size: 1.1rem;
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 0.2rem;
+        }
+
+        .stellarium-tip {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #10b981;
+            text-align: right;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .stellarium-tip {
+                text-align: left;
+                width: 100%;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                justify-content: space-between;
+            }
+        }
+        .credits{text-align:center;padding:30px 20px 40px;font-size:.85rem;opacity:.7;}
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Transiti Planetari</h1>
+        <p class="subtitle">I rari passaggi di Mercurio e Venere davanti al Sole (1631 - 2117)</p>
+    </header>
+
+    <div class="controls">
+        <div class="filter-group">
+            <button class="active" data-filter="all">Tutti</button>
+            <button data-filter="mercurio">Mercurio</button>
+            <button data-filter="venere">Venere</button>
+        </div>
+        <div>
+            <button id="sortBtn">Ordina: Dal più vecchio</button>
+        </div>
+    </div>
+
+    <div class="timeline-container" id="timeline">
+        <!-- I dati verranno inseriti qui dal JavaScript -->
+    </div>
+
+    <footer class="credits">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</footer>
+
+    <script>
+        // Dati storici e futuri accurati (UTC) per il controllo su Stellarium
+        const transiti = [
+            { pianeta: 'mercurio', data: '1631-11-07', ora: '07:51 UTC', tipo: 'Storico (Primo osservato nella storia)', nota: 'Predetto da Keplero, osservato da Gassendi.' },
+            { pianeta: 'venere', data: '1639-12-04', ora: '18:25 UTC', tipo: 'Storico', nota: 'Primo transito di Venere mai osservato (Horrocks e Crabtree).' },
+            { pianeta: 'mercurio', data: '1769-11-09', ora: '23:05 UTC', tipo: 'Storico', nota: 'Osservato da James Cook in Nuova Zelanda: la Baia di Mercurio prende il nome da questo evento.' },
+            { pianeta: 'venere', data: '1761-06-06', ora: '05:19 UTC', tipo: 'Storico', nota: 'Utilizzato per calcolare la distanza Terra-Sole.' },
+            { pianeta: 'venere', data: '1874-12-09', ora: '04:01 UTC', tipo: 'Storico', nota: 'Spedizioni scientifiche in tutto il mondo.' },
+            { pianeta: 'venere', data: '1882-12-06', ora: '17:06 UTC', tipo: 'Storico', nota: 'Grande fenomeno mediatico dell\'Ottocento.' },
+            { pianeta: 'mercurio', data: '1999-11-15', ora: '21:15 UTC', tipo: 'Passato recente', nota: 'Transito radente molto particolare.' },
+            { pianeta: 'venere', data: '2004-06-08', ora: '08:43 UTC', tipo: 'Passato recente', nota: 'Visibilissimo dall\'Europa.' },
+            { pianeta: 'mercurio', data: '2006-11-08', ora: '21:41 UTC', tipo: 'Passato recente', nota: 'Ottimo per Stellarium.' },
+            { pianeta: 'venere', data: '2012-06-06', ora: '01:29 UTC', tipo: 'Passato recente', nota: 'L\'ultimo transito di Venere del nostro secolo!' },
+            { pianeta: 'mercurio', data: '2016-05-09', ora: '14:57 UTC', tipo: 'Passato recente', nota: 'Durata totale di oltre 7 ore.' },
+            { pianeta: 'mercurio', data: '2019-11-11', ora: '15:20 UTC', tipo: 'Passato recente', nota: 'Ben visibile nelle prime fasi dall\'Italia.' },
+            { pianeta: 'mercurio', data: '2032-11-13', ora: '08:54 UTC', tipo: 'Futuro Prossimo', nota: 'Il prossimo transito visibile dall\'Europa.' },
+            { pianeta: 'mercurio', data: '2039-11-07', ora: '08:46 UTC', tipo: 'Futuro', nota: 'Visibile interamente la mattina.' },
+            { pianeta: 'mercurio', data: '2049-05-07', ora: '14:24 UTC', tipo: 'Futuro', nota: 'Transito di maggio (più raro di quelli di novembre).' },
+            { pianeta: 'venere', data: '2117-12-11', ora: '02:48 UTC', tipo: 'Futuro Remoto', nota: 'Il prossimo transito di Venere. Molto lontano nel tempo!' }
+        ];
+
+        let asc = true;
+        const timeline = document.getElementById('timeline');
+        const sortBtn = document.getElementById('sortBtn');
+
+        function renderTransiti(filter = 'all') {
+            timeline.innerHTML = '';
+            
+            let filtered = transiti.filter(t => filter === 'all' || t.pianeta === filter);
+            
+            filtered.sort((a, b) => {
+                let dateA = new Date(a.data);
+                let dateB = new Date(b.data);
+                return asc ? dateA - dateB : dateB - dateA;
+            });
+
+            filtered.forEach(t => {
+                // Formattazione data italiana
+                const opzioni = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
+                const dataFormattata = new Date(t.data).toLocaleDateString('it-IT', opzioni);
+
+                const card = document.createElement('div');
+                card.className = `card ${t.pianeta}`;
+                card.innerHTML = `
+                    <div class="info-main">
+                        <h2>${t.pianeta.toUpperCase()} <span class="badge">${t.tipo || 'Evento'}</span></h2>
+                        <div class="date-time">${dataFormattata} - ore ${t.ora}</div>
+                        <div class="note">${t.nota}</div>
+                    </div>
+                    <div class="stellarium-tip">
+                        🎯 Cerca su Stellarium<br><strong>${t.data}</strong>
+                    </div>
+                `;
+                timeline.appendChild(card);
+            });
+        }
+
+        // Gestione Filtri
+        document.querySelectorAll('.filter-group button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-group button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                renderTransiti(e.target.getAttribute('data-filter'));
+            });
+        });
+
+        // Gestione Ordinamento
+        sortBtn.addEventListener('click', () => {
+            asc = !asc;
+            sortBtn.innerText = asc ? "Ordina: Dal più vecchio" : "Ordina: Dal più recente";
+            const activeFilter = document.querySelector('.filter-group button.active').getAttribute('data-filter');
+            renderTransiti(activeFilter);
+        });
+
+        // Primo avvio
+        renderTransiti();
+    </script>
+</body>
+</html>
