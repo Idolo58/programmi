@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Astronomico Professionale</title>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            font-family: Arial, sans-serif;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #38bdf8;
+            text-align: center;
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+        }
+        p.sottotitolo {
+            color: #94a3b8;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .box-inserimento {
+            background-color: #151f32;
+            border: 1px solid #24334d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .campo {
+            margin-bottom: 12px;
+        }
+        .campo:last-child {
+            margin-bottom: 0;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background-color: #0b0f19;
+            border: 1px solid #24334d;
+            color: #f8fafc;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .btn-principale {
+            background-color: #ef4444;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn-principale:hover {
+            background-color: #dc2626;
+        }
+        .scatola-risultati {
+            background-color: #151f32;
+            border: 1px solid #24334d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .scatola-risultati h2 {
+            color: #38bdf8;
+            font-size: 1.2rem;
+            margin-top: 0;
+            border-bottom: 1px solid #24334d;
+            padding-bottom: 5px;
+        }
+        .riga-dato {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .testo-destra {
+            font-weight: bold;
+            color: #f59e0b;
+        }
+        .blocco-target {
+            background-color: #0b0f19;
+            border-left: 4px solid #38bdf8;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 0 6px 6px 0;
+        }
+        .nome-target {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+        .esito-positivo { color: #10b981; }
+        .esito-negativo { color: #ef4444; }
+        .esito-parziale { color: #f59e0b; }
+        .descrizione-target {
+            font-size: 0.88rem;
+            color: #cbd5e1;
+        }
+        .consiglio-target {
+            font-size: 0.85rem;
+            color: #38bdf8;
+            font-style: italic;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Strumentazione Astronomica</h1>
+    <p class="sottotitolo">Configuratore Ottico e Analisi Target Celesti</p>
+
+    <div class="box-inserimento">
+        <div class="campo">
+            <label>Diametro Obiettivo del Telescopio (mm)</label>
+            <input type="number" id="diametroOttica" value="130">
+        </div>
+        <div class="campo">
+            <label>Lunghezza Focale del Telescopio (mm)</label>
+            <input type="number" id="focaleTelescopio" value="900">
+        </div>
+        <div class="campo">
+            <label>Lente di Barlow da applicare</label>
+            <select id="moltiplicatoreBarlow">
+                <option value="1">Nessuna Barlow (1X)</option>
+                <option value="2">Barlow 2X</option>
+                <option value="3">Barlow 3X</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Lunghezza Focale dell'Oculare (mm)</label>
+            <input type="number" id="focaleOculare" value="25">
+        </div>
+    </div>
+
+    <button class="btn-principale" onclick="elaboraDatiAstronomici()">Genera Report Visivo</button>
+
+    <div id="bloccoOutput" style="display:none;">
+        
+        <div class="scatola-risultati">
+            <h2>1. Dati Ottici dello Strumento</h2>
+            <div class="riga-dato"><span>Focale Equivalente:</span><span class="testo-destra" id="outFocaleEffettiva">-</span></div>
+            <div class="riga-dato"><span>Rapporto Focale Risultante:</span><span class="testo-destra" id="outRapportoFocale">-</span></div>
+            <div class="riga-dato"><span>Potere Risolutivo (limite di Dawes):</span><span class="testo-destra" id="outRisoluzione">-</span></div>
+            <div class="riga-dato"><span>Magnitudine Limite (teorica):</span><span class="testo-destra" id="outMagnitudine">-</span></div>
+            <div class="riga-dato"><span>Ingrandimento Massimo Utile:</span><span class="testo-destra" id="outIngrandimentoMassimo">-</span></div>
+<div class="riga-dato"><span>Ingrandimento Minimo Utile (pupilla 7 mm):</span><span class="testo-destra" id="outIngrandimentoMinimo">-</span></div>
+        </div>
+
+        <div class="scatola-risultati">
+            <h2>2. Prestazioni Combinazione Attuale</h2>
+            <div class="riga-dato"><span>Ingrandimento Ottenuto:</span><span class="testo-destra" id="outIngrandimentoEffettivo" style="font-size:1.2rem;">-</span></div>
+            <div class="riga-dato"><span>Pupilla di Uscita:</span><span class="testo-destra" id="outPupillaUscita">-</span></div>
+        </div>
+
+        <div class="scatola-risultati">
+            <h2>3. Cosa Posso Vedere Bene e Cosa No?</h2>
+            <div id="listaTargetDinamica">
+                </div>
+        </div>
+
+    </div>
+</div>
+
+<p style="text-align:center;margin:24px 0 8px;font-size:.85rem;opacity:.7">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+<script>
+    function elaboraDatiAstronomici() {
+        var d = parseFloat(document.getElementById('diametroOttica').value);
+        var ft = parseFloat(document.getElementById('focaleTelescopio').value);
+        var b = parseFloat(document.getElementById('moltiplicatoreBarlow').value);
+        var fo = parseFloat(document.getElementById('focaleOculare').value);
+
+        if (!d || !ft || !fo || d <= 0 || ft <= 0 || fo <= 0) {
+            alert("Attenzione: Inserisci valori numerici corretti in tutte le caselle prima di generare il report.");
+            return;
+        }
+
+        var focaleEffettiva = ft * b;
+        var rapportoFocale = focaleEffettiva / d;
+        var ingrandimento = focaleEffettiva / fo;
+        var potereRisolutivo = 116 / d; 
+        var ingrandimentoMassimo = d * 2;
+        var pupillaUscita = d / ingrandimento;
+        var magnitudineLimite = 5 * Math.log10(d) + 2.1;
+
+        document.getElementById('outFocaleEffettiva').innerText = focaleEffettiva.toFixed(0) + " mm";
+        document.getElementById('outRapportoFocale').innerText = "f/" + rapportoFocale.toFixed(1);
+        document.getElementById('outRisoluzione').innerText = potereRisolutivo.toFixed(2) + " secondi d'arco";
+        document.getElementById('outMagnitudine').innerText = magnitudineLimite.toFixed(1);
+        document.getElementById('outIngrandimentoMassimo').innerText = ingrandimentoMassimo + " x";
+        document.getElementById('outIngrandimentoMinimo').innerText = (d / 7).toFixed(0) + " x";
+        
+        var txtIngrandimento = ingrandimento.toFixed(1) + " x";
+        if (ingrandimento > ingrandimentoMassimo) {
+            txtIngrandimento += " (ATTENZIONE: LIMITE OLTREPASSATO!)";
+            document.getElementById('outIngrandimentoEffettivo').style.color = "#ef4444";
+        } else {
+            document.getElementById('outIngrandimentoEffettivo').style.color = "#f59e0b";
+        }
+        document.getElementById('outIngrandimentoEffettivo').innerText = txtIngrandimento;
+        document.getElementById('outPupillaUscita').innerText = pupillaUscita.toFixed(1) + " mm";
+
+        var areaTarget = document.getElementById('listaTargetDinamica');
+        areaTarget.innerHTML = ""; 
+
+        var schedeTarget = [
+            {
+                nome: "SOLE (Richiede TASSATIVAMENTE il filtro Astrosolar)",
+                valuta: function() {
+                    if (ingrandimento > ingrandimentoMassimo) return { esito: "NO", colore: "esito-negativo", desc: "Ingrandimento vuoto e dannoso per la nitidezza. L'immagine ribolle senza mostrare dettagli reali.", cons: "Togli la Barlow o passa a un oculare con focale maggiore." };
+                    if (ingrandimento >= 70) return { esito: "SI (OTTIMO)", colore: "esito-positivo", desc: "Inquadratura ravvicinata straordinaria. Vedi i dettagli interni dei gruppi di macchie solari, le zone di penombra e la granulazione superficiale.", cons: "Mantieni questo setup." };
+                    return { esito: "SI (BUONO)", colore: "esito-positivo", desc: "Vedi l'intero disco del Sole nel campo visivo. Ideale per contare i gruppi di macchie e mapparne la posizione.", cons: "Per entrare dentro una singola macchia, aumenta gli ingrandimenti." };
+                }
+            },
+            {
+                nome: "LUNA",
+                valuta: function() {
+                    if (ingrandimento > ingrandimentoMassimo) return { esito: "NO", colore: "esito-negativo", desc: "L'immagine è scura e sfuocata. I dettagli dei crateri appaiono completamente impastati.", cons: "Riduci gli ingrandimenti cambiando oculare o rimuovendo la Barlow." };
+                    if (ingrandimento >= 120) return { esito: "SI (ECCELLENTE)", colore: "esito-positivo", desc: "Alta risoluzione magnifica. Vedi perfettamente i micro-crateri, le rime, i picchi centrali dei bacini e le catene montuose sul terminatore.", cons: "Usa un filtro lunare se la luminosità disturba l'occhio." };
+                    if (ingrandimento >= 50) return { esito: "SI (BUONO)", colore: "esito-positivo", desc: "Inquadri ampi settori o l'intera Luna. Ottimo impatto visivo dei mari e dei grandi sistemi di raggiera.", cons: "Per isolare un singolo cratere, spingi di più sull'ingrandimento." };
+                    return { esito: "SI (PANORAMICA)", colore: "esito-positivo", desc: "Vedi il disco lunare completo e brillantissimo immerso nello spazio nero. Ideale per osservare la luce cinerea.", cons: "Ottimo per panoramiche, ma per la geografia lunare servono più ingrandimenti." };
+                }
+            },
+            {
+                nome: "GIOVE",
+                valuta: function() {
+                    if (ingrandimento > ingrandimentoMassimo) return { esito: "NO", colore: "esito-negativo", desc: "Un disco enorme ma sbiadito e impossibile da mettere a fuoco.", cons: "Resta sotto il limite dei " + ingrandimentoMassimo + "x." };
+                    if (ingrandimento >= 120) return { esito: "SI (ECCELLENTE)", colore: "esito-positivo", desc: "Vedi nettamente le bande gassose principali, le perturbazioni tropicali, la Grande Macchia Rossa e i dettagli dei transiti dei quattro satelliti con le loro ombre.", cons: "Sfrutta le serate con atmosfera ferma (buon seeing)." };
+                    if (ingrandimento >= 50) return { esito: "PARZIALE", colore: "esito-parziale", desc: "Vedi il pianeta piccolo ma chiaramente schiacciato ai poli. Distingui le due bande principali e i 4 satelliti come puntini.", cons: "Per vedere i dettagli delle tempeste interne devi raddoppiare gli ingrandimenti." };
+                    return { esito: "NO", colore: "esito-negativo", desc: "Troppo piccolo. Appare come un punto luminoso circondato da quattro minuscole scintille.", cons: "Serve un oculare a focale molto più corta o l'aggiunta di una Barlow potente." };
+                }
+            },
+            {
+                nome: "SATURNO",
+                valuta: function() {
+                    if (ingrandimento > ingrandimentoMassimo) return { esito: "NO", colore: "esito-negativo", desc: "Pianeta scuro, distorto e privo di qualsiasi dettaglio.", cons: "Riduci l'ingrandimento ottico." };
+                    if (ingrandimento >= 120) return { esito: "SI (ECCELLENTE)", colore: "esito-positivo", desc: "Visione indimenticabile. Gli anelli sono totalmente separati dal globo. Si vede chiaramente la Divisione di Cassini e la luna Titano.", cons: "Configurazione ottimale per questo specifico pianeta." };
+                    if (ingrandimento >= 50) return { esito: "PARZIALE", colore: "esito-parziale", desc: "Vedi la sagoma del pianeta con i suoi anelli, ma l'immagine è troppo piccola per mostrare le divisioni interne.", cons: "Aumenta gli ingrandimenti accorciando la focale dell'oculare." };
+                    return { esito: "NO", colore: "esito-negativo", desc: "Pianeta minuscolo, la struttura degli anelli si intuisce appena senza dettagli.", cons: "Aumenta drasticamente il potere di ingrandimento." };
+                }
+            },
+            {
+                nome: "MARTE, VENERE E MERCURIO",
+                valuta: function() {
+                    if (ingrandimento > ingrandimentoMassimo) return { esito: "NO", colore: "esito-negativo", desc: "Immagine sfuocata e tremolante.", cons: "Riduci la potenza ottica." };
+                    if (ingrandimento >= 130) return { esito: "SI (BUONO)", colore: "esito-positivo", desc: "Su Venere e Mercurio vedi perfettamente la variazione delle fasi. Su Marte distingui le calotte polari bianche e le strutture dei continenti scuri (durante le opposizioni).", cons: "Su Marte usa filtri colorati (arancio o rosso) per aumentare il contrasto." };
+                    return { esito: "PARZIALE", colore: "esito-parziale", desc: "Vedi la fase di Venere solo se molto ampia. Marte appare come un semplice pallino arancione liscio.", cons: "Per l'osservazione planetaria servono alti ingrandimenti." };
+                }
+            },
+            {
+                nome: "URANO E NETTUNO",
+                valuta: function() {
+                    if (ingrandimento >= 100 && d >= 100) return { esito: "PARZIALE", colore: "esito-parziale", desc: "Urano si stacca dalle stelle mostrando un minuscolo dischetto sferico di colore verde-azzurro. Nettuno si mostra come un punto azzurro cupo.", cons: "Nessun dettaglio superficiale visibile, ma ne confermi l'identità planetaria." };
+                    return { esito: "NO", colore: "esito-negativo", desc: "Appaiono come normali puntini luminosi, impossibili da distinguere dalle comuni stelle di campo dello sfondo.", cons: "Aumenta l'ingrandimento per tentare di percepire il diametro del dischetto." };
+                }
+            },
+            {
+                nome: "CIELO PROFONDO (Nebulose, Galassie, Ammassi)",
+                valuta: function() {
+                    if (pupillaUscita > 7.0) return { esito: "PARZIALE", colore: "esito-parziale", desc: "La pupilla di uscita (" + pupillaUscita.toFixed(1) + " mm) supera quella dell'occhio (5-7 mm): parte della luce va persa e l'oggetto appare più debole.", cons: "Usa un oculare di focale più corta per portare la pupilla sotto i 7 mm." };
+            if (pupillaUscita < 1.0) return { esito: "NO", colore: "esito-negativo", desc: "L'immagine è estremamente scura (pupilla di uscita di solo " + pupillaUscita.toFixed(1) + "mm). Gli oggetti deboli e diffusi spariscono completamente.", cons: "Togli la Barlow e usa l'oculare da 25mm per restituire luce e luminosità." };
+                    if (pupillaUscita >= 2.8 && ingrandimento < 50) return { esito: "SI (ECCELLENTE)", colore: "esito-positivo", desc: "Massima luminosità e contrasto ottimale. Perfetto per la Nebulosa di Orione (M42), la Galassia di Andromeda (M31) e grandi ammassi aperti (Pleiadi).", cons: "Spostati sotto un cielo rurale o montano privo di inquinamento luminoso." };
+                    return { esito: "SI (BUONO)", colore: "esito-positivo", desc: "Luminosità bilanciata. Adatto per oggetti del profondo cielo compatti come l'Ammasso Globulare di Ercole (M13) o la Nebulosa Anello (M57).", cons: "Se l'oggetto appare troppo scuro, diminuisci gli ingrandimenti." };
+                }
+            },
+            {
+                nome: "STELLE DOPPIE (Binarie)",
+                valuta: function() {
+                    if (ingrandimento > ingrandimentoMassimo) return { esito: "NO", colore: "esito-negativo", desc: "Le stelle perdono la forma puntiforme allargandosi in dischi confusi per via della diffrazione.", cons: "Resta dentro il limite dell'ottica." };
+                    if (ingrandimento >= 90) return { esito: "SI (ECCELLENTE)", colore: "esito-positivo", desc: "Separi sistemi stretti fino al limite fisico dello specchio (" + potereRisolutivo.toFixed(2) + " secondi d'arco). Separazione netta di Castore, Albireo, Mizar e la Doppia Doppia della Lira.", cons: "Controlla la collimazione degli specchi per avere immagini puntiformi." };
+                    return { esito: "SI (BUONO)", colore: "esito-positivo", desc: "Risolvi agevolmente solo le doppie larghe e ben spaziate (es. Mizar, Albireo), apprezzandone le differenze cromatiche.", cons: "Se la doppia è molto stretta serve un ingrandimento maggiore." };
+                }
+            }
+        ];
+
+        schedeTarget.forEach(function(t) {
+            var datiTarget = t.valuta();
+            var divElemento = document.createElement('div');
+            divElemento.className = 'blocco-target';
+            divElemento.innerHTML = 
+                "<div class='nome-target'>" + t.nome + " &mdash; <span class='" + datiTarget.colore + "'>" + datiTarget.esito + "</span></div>" +
+                "<div class='descrizione-target'>" + datiTarget.desc + "</div>" +
+                "<div class='consiglio-target'>💡 Cosa fare: " + datiTarget.cons + "</div>";
+            areaTarget.appendChild(divElemento);
+        });
+
+        document.getElementById('bloccoOutput').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
