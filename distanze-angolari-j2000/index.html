@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore di Distanze Angolari Equatoriali (J2000)</title>
+    <style>
+        :root {
+            --space-bg: #0b132b;
+            --card-bg: #1c2541;
+            --accent-blue: #48cae4;
+            --accent-green: #06d6a0;
+            --text-light: #edf2f4;
+            --text-muted: #a2a8d3;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--space-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 10px;
+            background: linear-gradient(135deg, #1c2541, #3a506b);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+        }
+        h1 { margin: 0; color: var(--accent-blue); font-size: 24pt; }
+        h2 { color: var(--accent-blue); border-bottom: 2px solid #3a506b; padding-bottom: 8px; }
+        h3 { color: var(--accent-green); margin-top: 15px; }
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+            border: 1px solid #3a506b;
+        }
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .input-field {
+            flex: 1;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-size: 11pt;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background-color: #0b132b;
+            border: 1px solid #3a506b;
+            border-radius: 6px;
+            color: white;
+            font-size: 11pt;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-green);
+            color: #0b132b;
+            font-size: 13pt;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #4ee4b7;
+            transform: translateY(-1px);
+        }
+        #risultato {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(6, 214, 160, 0.1);
+            border-left: 6px solid var(--accent-green);
+            border-radius: 4px;
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+        }
+        .educational {
+            background-color: #111a36;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #233156;
+        }
+        p { text-align: justify; color: #d1d5db; }
+        ul { color: #d1d5db; padding-left: 20px; }
+        li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>CosmoDistance J2000</h1>
+        <p style="margin: 5px 0 0 0; color: var(--text-muted);">Calcolatore di Distanze Sferiche e Guida alle Coordinate Celesti</p>
+    </header>
+
+    <div class="card">
+        <h2>1. Calcolatore di Distanza Angolare</h2>
+        <p style="font-size: 10.5pt; color: var(--text-muted);">Inserisci i dati presi da Stellarium. Se un valore è pari a 0, puoi lasciarlo o inserire esplicitamente 0. Per una declinazione tra 0° e −1° scrivi −0 nei gradi (ad esempio −0° 30′).</p>
+        
+        <h3>Oggetto Celeste A (es. Luna)</h3>
+        <label>Ascensione Retta (RA) - [Ore, Minuti, Secondi]</label>
+        <div class="input-row">
+            <div class="input-field"><input type="number" id="ra_h1" value="0" min="0" max="23" placeholder="h"></div>
+            <div class="input-field"><input type="number" id="ra_m1" value="0" min="0" max="59" placeholder="m"></div>
+            <div class="input-field"><input type="number" id="ra_s1" value="0" min="0" max="59.99" step="0.01" placeholder="s"></div>
+        </div>
+        
+        <label>Declinazione (DEC) - [Gradi, Primi, Secondi]</label>
+        <div class="input-row">
+            <div class="input-field"><input type="number" id="dec_d1" value="0" min="-90" max="90" placeholder="°"></div>
+            <div class="input-field"><input type="number" id="dec_m1" value="0" min="0" max="59" placeholder="'"></div>
+            <div class="input-field"><input type="number" id="dec_s1" value="0" min="0" max="59.99" step="0.01" placeholder="&quot;"></div>
+        </div>
+
+        <h3>Oggetto Celeste B (es. Giove / Stella)</h3>
+        <label>Ascensione Retta (RA) - [Ore, Minuti, Secondi]</label>
+        <div class="input-row">
+            <div class="input-field"><input type="number" id="ra_h2" value="0" min="0" max="23" placeholder="h"></div>
+            <div class="input-field"><input type="number" id="ra_m2" value="0" min="0" max="59" placeholder="m"></div>
+            <div class="input-field"><input type="number" id="ra_s2" value="0" min="0" max="59.99" step="0.01" placeholder="s"></div>
+        </div>
+        
+        <label>Declinazione (DEC) - [Gradi, Primi, Secondi]</label>
+        <div class="input-row">
+            <div class="input-field"><input type="number" id="dec_d2" value="0" min="-90" max="90" placeholder="°"></div>
+            <div class="input-field"><input type="number" id="dec_m2" value="0" min="0" max="59" placeholder="'"></div>
+            <div class="input-field"><input type="number" id="dec_s2" value="0" min="0" max="59.99" step="0.01" placeholder="&quot;"></div>
+        </div>
+
+        <button onclick="eseguiCalcoloSferico()">Calcola Distanza Esatta</button>
+
+        <div id="risultato" style="display:none;"></div>
+    </div>
+
+    <div class="educational">
+        <h2>2. Guida Didattica: Le Coordinate Equatoriali</h2>
+        
+        <h3>Che cosa sono?</h3>
+        <p>
+            Le <strong>coordinate equatoriali</strong> sono il sistema cartografico universale utilizzato dagli astronomi per mappare il cielo. Immagina di proiettare la griglia di latitudine e longitudine della Terra verso l'esterno, creando una gigantesca sfera immaginaria avvolta intorno al nostro pianeta: la <strong>Sfera Celeste</strong>.
+        </p>
+        <ul>
+            <li><strong>L'Ascensione Retta (RA):</strong> Corrisponde alla longitudine terrestre. Si misura partendo dal <i>Punto Gamma</i> (l'intersezione tra l'equatore celeste e l'eclittica) ed è espressa insolitamente in <strong>ore (h), minuti (m) e secondi (s)</strong>, da 0h a 24h, poiché riflette la rotazione giornaliera della Terra.</li>
+            <li><strong>La Declinazione (DEC):</strong> Corrisponde alla latitudine terrestre. Si misura in <strong>gradi (°), primi (') e secondi (")</strong>, da 0° sull'Equatore Celeste fino a +90° al Polo Nord celeste e -90° al Polo Sud celeste.</li>
+        </ul>
+
+        <h3>Perché l'Azimut e l'Altezza cambiano, mentre RA e DEC no?</h3>
+        <p>
+            Se guardi una stella, la sua <i>Altezza</i> e il suo <i>Azimut</i> cambiano ogni minuto perché la Terra gira su se stessa, modificando continuamente la tua prospettiva locale rispetto al suolo. Le coordinate equatoriali (RA/DEC) risolvono questo problema alla radice: esse ruotano insieme al cielo profondo e alle stelle. Una stella avrà sempre le stesse identiche coordinate RA/DEC sia che tu la guardi dall'Italia o dall'Australia, a mezzanotte o all'alba.
+        </p>
+
+        <h3>Che cos'è lo standard "J2000"?</h3>
+        <p>
+            Anche se le stelle sembrano fisse, l'asse della Terra oscilla lentamente nel tempo compiendo un cerchio completo ogni 26.000 anni (un fenomeno chiamato <i>precessione degli equinozi</i>). Questo fa sì che la griglia celeste si sposti impercettibilmente di anno in anno. Per evitare fraintendimenti, la comunità astronomica internazionale ha fissato un'epoca standard di riferimento temporale universale: l'anno <strong>J2000.0</strong> (corrispondente al 1° gennaio 2000 a mezzogiorno). Quando selezioni i dati J2000 su Stellarium, stai visualizzando la posizione geometrica pura degli astri congelata in quell'epoca fissa di riferimento, ideale per calcoli accurati di navigazione e per far funzionare i software matematici senza errori dovuti alla deformazione del tempo.
+        </p>
+
+        <h3>Attenzione alla Luna e ai pianeti vicini</h3>
+        <p>
+            Le coordinate delle stelle sono praticamente le stesse da ogni luogo, ma quelle della Luna cambiano fino a circa 1° tra un luogo e l'altro (<i>parallasse</i>) e quelle di Luna, Sole e pianeti cambiano rapidamente nel tempo. Per confrontare due astri usa sempre lo stesso tipo di coordinate (ad esempio quelle J2000 di Stellarium) e lo stesso istante per entrambi.
+        </p>
+    </div>
+    <p style="text-align:center; margin: 18px 0; font-size: 10pt; color: #a2a8d3;">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</p>
+</div>
+
+<script>
+function parsingInput(valore) {
+    let f = parseFloat(valore);
+    return isNaN(f) ? 0 : f;
+}
+
+function hmsToGradi(h, m, s) {
+    return (parsingInput(h) + parsingInput(m)/60 + parsingInput(s)/3600) * 15;
+}
+
+function dmsToGradi(d, m, s) {
+    let deg = parsingInput(d);
+    let sign = (deg < 0 || Object.is(deg, -0)) ? -1 : 1;
+    let assoluto = Math.abs(deg) + parsingInput(m)/60 + parsingInput(s)/3600;
+    return assoluto * sign;
+}
+
+function eseguiCalcoloSferico() {
+    let rad = Math.PI / 180;
+    
+    // Lettura e conversione Corpo A
+    let ra1_deg = hmsToGradi(document.getElementById('ra_h1').value, document.getElementById('ra_m1').value, document.getElementById('ra_s1').value);
+    let dec1_deg = dmsToGradi(document.getElementById('dec_d1').value, document.getElementById('dec_m1').value, document.getElementById('dec_s1').value);
+    
+    // Lettura e conversione Corpo B
+    let ra2_deg = hmsToGradi(document.getElementById('ra_h2').value, document.getElementById('ra_m2').value, document.getElementById('ra_s2').value);
+    let dec2_deg = dmsToGradi(document.getElementById('dec_d2').value, document.getElementById('dec_m2').value, document.getElementById('dec_s2').value);
+    
+    let r1 = ra1_deg * rad;
+    let d1 = dec1_deg * rad;
+    let r2 = ra2_deg * rad;
+    let d2 = dec2_deg * rad;
+    
+    // Formula di haversine (stabile anche per distanze molto piccole)
+    let dRa = r2 - r1, dDec = d2 - d1;
+    let a = Math.sin(dDec / 2) ** 2 + Math.cos(d1) * Math.cos(d2) * Math.sin(dRa / 2) ** 2;
+    let dist_deg = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) / rad;
+    
+    let divRis = document.getElementById('risultato');
+    divRis.style.display = 'block';
+    let tot = Math.round(dist_deg * 36000) / 10;
+    let dd = Math.floor(tot / 3600), mm = Math.floor((tot % 3600) / 60), ss = tot % 60;
+    divRis.innerHTML = "Distanza Angolare Calcolata:<br><span style='font-size: 24pt; color: #06d6a0;'>" + dist_deg.toFixed(4) + "°</span><br><span style='font-size: 13pt; color: #a2a8d3;'>= " + dd + "° " + mm + "′ " + ss.toFixed(1) + "″</span>";
+}
+</script>
+
+</body>
+</html>
