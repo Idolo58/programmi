@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Cielo Reale vs Lo Zodiaco</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            max-width: 800px;
+        }
+        header h1 {
+            color: #58a6ff;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        header p {
+            color: #8b949e;
+            font-size: 0.95rem;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            max-width: 1100px;
+            width: 100%;
+        }
+        .visualizer-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            flex: 1;
+            min-width: 320px;
+            max-width: 500px;
+        }
+        .controls {
+            width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-size: 0.85rem;
+            color: #8b949e;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input[type="date"], select {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #f0f6fc;
+            padding: 10px;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input[type="date"]:focus, select:focus {
+            border-color: #58a6ff;
+        }
+        canvas {
+            background-color: #0d1117;
+            border-radius: 50%;
+            margin-top: 10px;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #21262d;
+        }
+        .info-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            flex: 1;
+            min-width: 320px;
+            max-width: 500px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .info-section {
+            margin-bottom: 20px;
+        }
+        .info-section h2 {
+            color: #58a6ff;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 5px;
+        }
+        .result-box {
+            background-color: #21262d;
+            border-left: 4px solid #ff7b72;
+            padding: 14px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 15px;
+        }
+        .result-line {
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+        }
+        .result-line span {
+            font-weight: bold;
+            color: #f0f6fc;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .visualizer-card, .info-card {
+                max-width: 100%;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Il Cielo Reale vs Lo Zodiaco</h1>
+        <p>Simulatore grafico tra le 13 costellazioni dell'astronomia reale e i 12 segni dell'astrologia classica.</p>
+    </header>
+
+    <div class="main-container">
+        <!-- COLONNA SINISTRA: GRAFICA E CONTROLLI -->
+        <div class="visualizer-card">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="birth-date">Data di Nascita / Osservazione</label>
+                    <input type="date" id="birth-date" value="1958-11-22">
+                </div>
+                <div class="control-group">
+                    <label for="obs-time">Orario di Osservazione (Tempo Solare Vero)</label>
+                    <select id="obs-time">
+                        <option value="12">Mezzogiorno Solare Vero (Ore 12:00 TMV)</option>
+                        <option value="24">Mezzanotte Solare Vera (Ore 24:00 TMV)</option>
+                    </select>
+                </div>
+            </div>
+            <canvas id="zodiacCanvas" width="500" height="500"></canvas>
+        </div>
+
+        <!-- COLONNA DESTRA: RISULTATI ED ELEMENTI DIDATTICI -->
+        <div class="info-card">
+            <div class="info-section">
+                <h2>Posizione del Sole e dello Zodiaco</h2>
+                <div class="result-box" id="res-box-color">
+                    <div class="result-line">Costellazione Reale (IAU): <span id="res-sun-pos">-</span></div>
+                    <div class="result-line">Segno Astrologico Classico: <span id="res-astrologic">-</span></div>
+                    <div class="result-line">Longitudine Eclittica Solare: <span id="res-lon">-</span></div>
+                    <div class="result-line" style="margin-top: 10px; border-top: 1px solid #30363d; padding-top: 8px; color: #ff7b72;">
+                        <strong>Al Meridiano si trova:</strong> <br><span id="res-meridian" style="font-size: 1.1rem;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section" style="font-size: 0.9rem; color: #8b949e; line-height: 1.6;">
+                <h2>Perché si notano differenze?</h2>
+                <p style="margin-bottom: 10px;">
+                    <strong>1. Precessione degli Equinozi:</strong> Negli ultimi 2000 anni l'asse terrestre ha fatto scivolare lo zodiaco reale rispetto alle date tradizionali della convenzione astrologica.
+                </p>
+                <p style="margin-bottom: 10px;">
+                    <strong>2. I Confini Reali (IAU):</strong> Le costellazioni sulla sfera celeste hanno dimensioni molto diverse tra loro (incluso Ofiuco) rispetto ai 12 settori uguali di 30° usati dall'astrologia.
+                </p>
+                <p>
+                    <strong>3. Mezzogiorno vs Mezzanotte:</strong> A Mezzogiorno il Sole culmina insieme alla costellazione in cui si trova. A Mezzanotte si osserva alta in cielo la costellazione opposta a 180°.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)
+    </footer>
+
+    <script>
+        const signsEcliptic = [
+            { name: "Ariete", start: 0, end: 30, icon: "♈" },
+            { name: "Toro", start: 30, end: 60, icon: "♉" },
+            { name: "Gemelli", start: 60, end: 90, icon: "♊" },
+            { name: "Cancro", start: 90, end: 120, icon: "♋" },
+            { name: "Leone", start: 120, end: 150, icon: "♌" },
+            { name: "Vergine", start: 150, end: 180, icon: "♍" },
+            { name: "Bilancia", start: 180, end: 210, icon: "♎" },
+            { name: "Scorpione", start: 210, end: 240, icon: "♏" },
+            { name: "Sagittario", start: 240, end: 270, icon: "♐" },
+            { name: "Capricorno", start: 270, end: 300, icon: "♑" },
+            { name: "Acquario", start: 300, end: 330, icon: "♒" },
+            { name: "Pesci", start: 330, end: 360, icon: "♓" }
+        ];
+
+        const constellationsEcliptic = [
+            { name: "Pesci", start: 351.5, end: 28.8 },
+            { name: "Ariete", start: 28.8, end: 53.4 },
+            { name: "Toro", start: 53.4, end: 90.1 },
+            { name: "Gemelli", start: 90.1, end: 118.2 },
+            { name: "Cancro", start: 118.2, end: 138.2 },
+            { name: "Leone", start: 138.2, end: 174.1 },
+            { name: "Vergine", start: 174.1, end: 217.8 },
+            { name: "Bilancia", start: 217.8, end: 241.1 },
+            { name: "Scorpione", start: 241.1, end: 248.0 },
+            { name: "Ofiuco", start: 248.0, end: 266.3 },
+            { name: "Sagittario", start: 266.3, end: 299.7 },
+            { name: "Capricorno", start: 299.7, end: 327.9 },
+            { name: "Acquario", start: 327.9, end: 351.5 }
+        ];
+
+        const dateInput = document.getElementById('birth-date');
+        const timeSelect = document.getElementById('obs-time');
+        const canvas = document.getElementById('zodiacCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const resSunPos = document.getElementById('res-sun-pos');
+        const resAstrologic = document.getElementById('res-astrologic');
+        const resLon = document.getElementById('res-lon');
+        const resMeridian = document.getElementById('res-meridian');
+        const resBoxColor = document.getElementById('res-box-color');
+
+        // CALCOLO PRECISO DELLA LONGITUDINE SOLARE (Equazione del Centro)
+        function getSolarLongitude(dateStr) {
+            window.__dataZodiaco = dateStr;
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const jd = Date.UTC(y, m - 1, d, 12) / 86400000 + 2440587.5;
+            const n = jd - 2451545.0;
+            const L = (280.460 + 0.9856474 * n) % 360;
+            const g = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+            let lon = L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g);
+            return ((lon % 360) + 360) % 360;   // longitudine eclittica della data (zodiaco tropicale)
+        }
+        // Le frontiere IAU delle costellazioni sono riferite all'equinozio J2000: si corregge la precessione
+        function toJ2000(lon) {
+            const [y, m, d] = (window.__dataZodiaco || '2000-01-01').split('-').map(Number);
+            const T = (Date.UTC(y, m - 1, d, 12) / 86400000 + 2440587.5 - 2451545.0) / 365.25;
+            return (((lon - 50.29 * T / 3600) % 360) + 360) % 360;
+        }
+
+        function findAstroSign(lon) {
+            for (let s of signsEcliptic) {
+                if (lon >= s.start && lon < s.end) return `${s.icon} ${s.name}`;
+            }
+            return "♈ Ariete";
+        }
+
+        function findAstronomicConstellation(lon) {
+            for (let c of constellationsEcliptic) {
+                if (c.start <= c.end) {
+                    if (lon >= c.start && lon < c.end) return c.name;
+                } else {
+                    if (lon >= c.start || lon < c.end) return c.name;
+                }
+            }
+            return "Pesci";
+        }
+
+        function drawZodiac() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const outerR = 230;
+            const midR = 150;
+            const innerR = 80;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const sunLongitude = getSolarLongitude(dateInput.value);
+            const isMidnight = timeSelect.value === "24";
+            
+            const targetLongitude = isMidnight ? (sunLongitude + 180) % 360 : sunLongitude;
+
+            resLon.textContent = sunLongitude.toFixed(1) + "°";
+            resAstrologic.textContent = findAstroSign(sunLongitude);
+            
+            const sunConst = findAstronomicConstellation(toJ2000(sunLongitude));
+            resSunPos.textContent = sunConst;
+            
+            const meridianConst = findAstronomicConstellation(toJ2000(targetLongitude));
+            resMeridian.textContent = meridianConst + (isMidnight ? " (Visibile di notte)" : " (Invisibile, coperta dalla luce del Sole)");
+
+            if (isMidnight) {
+                resBoxColor.style.borderLeftColor = "#58a6ff";
+            } else {
+                resBoxColor.style.borderLeftColor = "#f2bc54";
+            }
+
+            const angleOffset = -Math.PI / 2;
+
+            // 1. ANELLO ESTERNO: COSTELLAZIONI ASTRONOMICHE (13 REALI)
+            constellationsEcliptic.forEach((c, index) => {
+                let startAng = (c.start * Math.PI / 180) + angleOffset;
+                let endAng = (c.end * Math.PI / 180) + angleOffset;
+                if (c.start > c.end) endAng = ((c.end + 360) * Math.PI / 180) + angleOffset;
+
+                ctx.fillStyle = index % 2 === 0 ? "#1c2128" : "#22272e";
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, outerR, startAng, endAng); ctx.lineTo(cx, cy); ctx.fill();
+                ctx.strokeStyle = "#444c56"; ctx.lineWidth = 1; ctx.stroke();
+
+                let midAng = startAng + (endAng - startAng) / 2;
+                ctx.save(); ctx.translate(cx, cy); ctx.rotate(midAng);
+                ctx.fillStyle = "#58a6ff"; ctx.font = "bold 9px sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(c.name, (outerR + midR) / 2, 0); ctx.restore();
+            });
+
+            // 2. ANELLO INTERNO: SEGNI ASTROLOGICI (12 UNIFORMI)
+            signsEcliptic.forEach((s, index) => {
+                let startAng = (s.start * Math.PI / 180) + angleOffset;
+                let endAng = (s.end * Math.PI / 180) + angleOffset;
+
+                ctx.fillStyle = index % 2 === 0 ? "#21262d" : "#161b22";
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, midR, startAng, endAng); ctx.lineTo(cx, cy); ctx.fill();
+                ctx.strokeStyle = "#30363d"; ctx.lineWidth = 1; ctx.stroke();
+
+                let midAng = startAng + (endAng - startAng) / 2;
+                ctx.save(); ctx.translate(cx, cy); ctx.rotate(midAng);
+                ctx.fillStyle = "#f2bc54"; ctx.font = "10px sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(s.icon + " " + s.name, (midR + innerR) / 2, 0); ctx.restore();
+            });
+
+            // 3. MOZZO CENTRALE
+            ctx.fillStyle = "#0d1117"; ctx.beginPath(); ctx.arc(cx, cy, innerR, 0, 2 * Math.PI); ctx.fill();
+            ctx.strokeStyle = "#58a6ff"; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = "#f2bc54"; ctx.font = "24px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(isMidnight ? "🌌" : "☀️", cx, cy);
+
+            // 4. INDICATORE FRECCIA
+            let targetAngle = (targetLongitude * Math.PI / 180) + angleOffset;
+            ctx.strokeStyle = isMidnight ? "#58a6ff" : "#ff7b72"; 
+            ctx.lineWidth = 3; ctx.shadowBlur = 8; ctx.shadowColor = ctx.strokeStyle;
+            ctx.beginPath(); ctx.moveTo(cx + Math.cos(targetAngle) * innerR, cy + Math.sin(targetAngle) * innerR);
+            ctx.lineTo(cx + Math.cos(targetAngle) * (outerR - 10), cy + Math.sin(targetAngle) * (outerR - 10)); ctx.stroke();
+
+            ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.moveTo(cx + Math.cos(targetAngle) * outerR, cy + Math.sin(targetAngle) * outerR);
+            ctx.lineTo(cx + Math.cos(targetAngle - 0.04) * (outerR - 12), cy + Math.sin(targetAngle - 0.04) * (outerR - 12));
+            ctx.lineTo(cx + Math.cos(targetAngle + 0.04) * (outerR - 12), cy + Math.sin(targetAngle + 0.04) * (outerR - 12));
+            ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+            
+            if (isMidnight) {
+                let sunAngle = (sunLongitude * Math.PI / 180) + angleOffset;
+                ctx.strokeStyle = "rgba(242, 188, 84, 0.4)"; ctx.lineWidth = 1.5;
+                ctx.setLineDash([5, 5]); ctx.beginPath();
+                ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(sunAngle) * innerR, cy + Math.sin(sunAngle) * innerR);
+                ctx.stroke(); ctx.setLineDash([]);
+            }
+        }
+
+        dateInput.addEventListener('input', drawZodiac);
+        timeSelect.addEventListener('change', drawZodiac);
+        
+        window.onload = () => { drawZodiac(); };
+    </script>
+</body>
+</html>
