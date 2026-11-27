@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panoramica Celeste - San Giorgio del Sannio</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        header {
+            background: linear-gradient(180deg, #111827 0%, #0b0f19 100%);
+            padding: 12px 20px;
+            text-align: center;
+            border-bottom: 1px solid #1f2937;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+        .subtitle {
+            margin: 3px 0 0 0;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            padding: 12px;
+            background-color: #111827;
+            border-bottom: 1px solid #1f2937;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .time-stepper {
+            display: flex;
+            gap: 4px;
+        }
+        .time-stepper button {
+            flex: 1;
+            background-color: #374151;
+            height: 38px;
+        }
+        label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: bold;
+        }
+        input, select, button {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            box-sizing: border-box;
+            height: 38px;
+        }
+        input:focus, select:focus {
+            border-color: #38bdf8;
+        }
+        button {
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: background 0.2s;
+        }
+        #btn-rt {
+            background-color: #ef4444; /* Rosso in tempo reale */
+            color: white;
+        }
+        #btn-rt.paused {
+            background-color: #0284c7; /* Blu in modalità manuale */
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 55vh;
+            min-height: 350px;
+            background: radial-gradient(circle at bottom, #0d1b2a 0%, #070a13 100%);
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #legend {
+            padding: 12px;
+            background-color: #111827;
+            font-size: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            border-top: 1px solid #1f2937;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .line-eq { width: 20px; height: 2px; background-color: #34d399; }
+        .line-ec { width: 20px; height: 2px; background-color: #f59e0b; }
+        .dot-star { width: 6px; height: 6px; background-color: #ffffff; border-radius: 50%; }
+        
+        #info-panel {
+            padding: 15px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            background-color: #0b0f19;
+            border-top: 1px solid #1f2937;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status-badge {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Panoramica Celeste Interattiva</h1>
+    <div class="subtitle">San Giorgio del Sannio (BN) &bull; Lat: 41°04' N, Lon: 14°51' E</div>
+</header>
+
+<div id="controls">
+    <div class="control-group">
+        <label>Controllo Tempo</label>
+        <button id="btn-rt" onclick="toggleRealTime()">TEMPO REALE: ON</button>
+    </div>
+    <div class="control-group">
+        <label>Data</label>
+        <input type="date" id="input-date" oninput="setToManualMode()" onchange="setToManualMode()">
+    </div>
+    <div class="control-group">
+        <label>Ora (Modifica per bloccare)</label>
+        <div class="time-stepper">
+            <button onclick="stepHour(-1)">-1h</button>
+            <input type="time" id="input-time" oninput="setToManualMode()" onchange="setToManualMode()">
+            <button onclick="stepHour(1)">+1h</button>
+        </div>
+    </div>
+    <div class="control-group">
+        <label>Direzione Vista</label>
+        <select id="select-view" onchange="changeViewCenter()">
+            <option value="180">Sud (Centro)</option>
+            <option value="90">Est (Centro)</option>
+            <option value="270">Ovest (Centro)</option>
+            <option value="0">Nord (Centro)</option>
+        </select>
+    </div>
+</div>
+
+<div id="canvas-container">
+    <canvas id="skyCanvas"></canvas>
+</div>
+
+<div id="legend">
+    <div class="legend-item"><span class="line-eq"></span> Equatore Celeste</div>
+    <div class="legend-item"><span class="line-ec"></span> Eclittica</div>
+    <div class="legend-item"><span class="dot-star"></span> Stelle Principali</div>
+</div>
+
+<div id="info-panel">
+    <p><strong>Istruzioni:</strong> I campi Data e Ora sono sempre liberi. Appena ne modifichi uno, il tempo si blocca sul momento scelto. Per tornare al movimento reale del cielo, premi il pulsante in alto a sinistra.</p>
+</div>
+
+<footer style="text-align:center;padding:16px;font-size:.8rem;opacity:.7">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</footer>
+<script>
+const canvas = document.getElementById('skyCanvas');
+const ctx = canvas.getContext('2d');
+
+const LAT = 41.0667 * Math.PI / 180;
+const LON = 14.8500 * Math.PI / 180;
+
+let isRealTime = true;
+let workingDate = new Date();
+let viewCenterAz = 180; 
+
+const STARS = [
+    { name: "Sirio", ra: 6.751, dec: -16.716, mag: -1.46 },
+    { name: "Vega", ra: 18.616, dec: 38.784, mag: 0.03 },
+    { name: "Arturo", ra: 14.261, dec: 19.182, mag: -0.05 },
+    { name: "Rigel", ra: 5.251, dec: -8.202, mag: 0.12 },
+    { name: "Betelgeuse", ra: 5.917, dec: 7.414, mag: 0.50 },
+    { name: "Procione", ra: 7.655, dec: 5.224, mag: 0.34 },
+    { name: "Aldebaran", ra: 4.599, dec: 16.509, mag: 0.85 },
+    { name: "Polluce", ra: 7.755, dec: 28.026, mag: 1.16 },
+    { name: "Castore", ra: 7.575, dec: 31.888, mag: 1.58 },
+    { name: "Regolo", ra: 10.140, dec: 11.967, mag: 1.35 },
+    { name: "Spica", ra: 13.421, dec: -11.161, mag: 0.98 },
+    { name: "Antares", ra: 16.490, dec: -26.432, mag: 1.05 },
+    { name: "Altair", ra: 19.846, dec: 8.868, mag: 0.76 },
+    { name: "Deneb", ra: 20.690, dec: 45.280, mag: 1.25 },
+    { name: "Capella", ra: 5.272, dec: 45.999, mag: 0.08 },
+    { name: "Polaris", ra: 2.530, dec: 89.264, mag: 1.97 }
+];
+
+function getGMST(date) {
+    const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
+    const d = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+    let gmst = 18.697374558 + 24.06570982441908 * d;
+    gmst = gmst % 24;
+    if (gmst < 0) gmst += 24;
+    return gmst;
+}
+
+function raDecToAltAz(ra, dec, gmst) {
+    const lst = (gmst + (LON * 12 / Math.PI)) % 24;
+    let ha = (lst - ra) * 15 * Math.PI / 180; 
+    if (ha < -Math.PI) ha += 2 * Math.PI;
+    if (ha > Math.PI) ha -= 2 * Math.PI;
+    
+    const decRad = dec * Math.PI / 180;
+    const sinAlt = Math.sin(decRad) * Math.sin(LAT) + Math.cos(decRad) * Math.cos(LAT) * Math.cos(ha);
+    const alt = Math.asin(sinAlt);
+    
+    const cosAz = (Math.sin(decRad) - Math.sin(alt) * Math.sin(LAT)) / (Math.cos(alt) * Math.cos(LAT));
+    let az = Math.acos(Math.min(1, Math.max(-1, cosAz)));
+    if (Math.sin(ha) > 0) az = 2 * Math.PI - az;
+    
+    return { alt: alt * 180 / Math.PI, az: az * 180 / Math.PI };
+}
+
+function getXY(az, alt) {
+    let dAz = az - viewCenterAz;
+    if (dAz > 180) dAz -= 360;
+    if (dAz < -180) dAz += 360;
+    
+    const w = canvas.width / window.devicePixelRatio;
+    const h = canvas.height / window.devicePixelRatio;
+    
+    const x = w / 2 + (dAz / 90) * (w / 2);
+    const y = h - (alt / 90) * (h - 50) - 30; 
+    
+    return { x, y, visible: (dAz >= -90 && dAz <= 90 && alt >= 0) };
+}
+
+function updateInputsFromDate(date) {
+    const p = n => String(n).padStart(2, '0');
+    document.getElementById('input-date').value = date.getFullYear() + '-' + p(date.getMonth() + 1) + '-' + p(date.getDate());
+    document.getElementById('input-time').value = p(date.getHours()) + ':' + p(date.getMinutes());
+}
+
+function drawLoop() {
+    if (isRealTime) {
+        workingDate = new Date();
+        const ae = document.activeElement;
+        if (ae !== document.getElementById('input-date') && ae !== document.getElementById('input-time')) updateInputsFromDate(workingDate);
+    }
+    
+    const gmst = getGMST(workingDate);
+    const w = canvas.width / window.devicePixelRatio;
+    const h = canvas.height / window.devicePixelRatio;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Orizzonte
+    ctx.fillStyle = '#070a13';
+    ctx.fillRect(0, h - 30, w, 30);
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h - 30);
+    ctx.lineTo(w, h - 30);
+    ctx.stroke();
+    
+    // Punti Cardinali
+    const cardPoints = [
+        { name: "N", az: 0 }, { name: "NE", az: 45 }, { name: "E", az: 90 }, 
+        { name: "SE", az: 135 }, { name: "S", az: 180 }, { name: "SO", az: 225 }, 
+        { name: "O", az: 270 }, { name: "NO", az: 315 }
+    ];
+    
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    cardPoints.forEach(p => {
+        const pt = getXY(p.az, 0);
+        if (pt.visible) {
+            ctx.fillText(p.name, pt.x, h - 10);
+            ctx.beginPath();
+            ctx.strokeStyle = '#475569';
+            ctx.moveTo(pt.x, h - 30);
+            ctx.lineTo(pt.x, h - 25);
+            ctx.stroke();
+        }
+    });
+
+    // 1. EQUATORE CELESTE
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(52, 211, 153, 0.7)';
+    ctx.lineWidth = 2;
+    let firstEq = true;
+    for (let r = 0; r <= 24; r += 0.05) {
+        const coords = raDecToAltAz(r, 0, gmst);
+        const pt = getXY(coords.az, coords.alt);
+        if (pt.visible) {
+            if (firstEq) { ctx.moveTo(pt.x, pt.y); firstEq = false; }
+            else { ctx.lineTo(pt.x, pt.y); }
+        } else { firstEq = true; }
+    }
+    ctx.stroke();
+    
+    // 2. ECLITTICA
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+    ctx.lineWidth = 2;
+    let firstEc = true;
+    const eps = 23.4392 * Math.PI / 180;
+    for (let lam = 0; lam <= 360; lam += 1) {
+        let lamRad = lam * Math.PI / 180;
+        let ra = Math.atan2(Math.cos(eps) * Math.sin(lamRad), Math.cos(lamRad)) * 12 / Math.PI;
+        if (ra < 0) ra += 24;
+        let dec = Math.asin(Math.sin(eps) * Math.sin(lamRad)) * 180 / Math.PI;
+        
+        const coords = raDecToAltAz(ra, dec, gmst);
+        const pt = getXY(coords.az, coords.alt);
+        if (pt.visible) {
+            if (firstEc) { ctx.moveTo(pt.x, pt.y); firstEc = false; }
+            else { ctx.lineTo(pt.x, pt.y); }
+        } else { firstEc = true; }
+    }
+    ctx.stroke();
+
+    // 3. STELLE
+    STARS.forEach(s => {
+        const coords = raDecToAltAz(s.ra, s.dec, gmst);
+        const pt = getXY(coords.az, coords.alt);
+        if (pt.visible) {
+            const size = Math.max(1.5, 4.5 - s.mag);
+            ctx.beginPath();
+            ctx.fillStyle = '#ffffff';
+            ctx.arc(pt.x, pt.y, size, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(s.name, pt.x + 6, pt.y + 3);
+        }
+    });
+
+    requestAnimationFrame(drawLoop);
+}
+
+function toggleRealTime() {
+    isRealTime = !isRealTime;
+    const btn = document.getElementById('btn-rt');
+    if (isRealTime) {
+        btn.classList.remove('paused');
+        btn.innerText = 'TEMPO REALE: ON';
+    } else {
+        btn.classList.add('paused');
+        btn.innerText = 'TEMPO REALE: OFF';
+    }
+}
+
+function setToManualMode() {
+    isRealTime = false;
+    const btn = document.getElementById('btn-rt');
+    btn.classList.add('paused');
+    btn.innerText = 'TEMPO REALE: OFF';
+    
+    const dateVal = document.getElementById('input-date').value;
+    const timeVal = document.getElementById('input-time').value;
+    if (dateVal && timeVal) {
+        workingDate = new Date(dateVal + 'T' + timeVal);
+    }
+}
+
+function stepHour(amount) {
+    setToManualMode();
+    workingDate.setHours(workingDate.getHours() + amount);
+    updateInputsFromDate(workingDate);
+}
+
+function changeViewCenter() {
+    viewCenterAz = parseInt(document.getElementById('select-view').value);
+}
+
+function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+window.addEventListener('resize', resizeCanvas);
+// Inizializzazione immediata della data corrente nei campi
+updateInputsFromDate(new Date());
+setTimeout(() => {
+    resizeCanvas();
+    drawLoop();
+}, 100);
+</script>
+
+</body>
+</html>
