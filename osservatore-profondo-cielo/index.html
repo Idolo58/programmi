@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Osservatore Profondo Cielo • Messier & NGC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background: #000011; color: #e0f0ff; font-family: system-ui, sans-serif; }
+        .star-bg {
+            background-image: radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px), 
+                              radial-gradient(circle, rgba(255,255,255,0.5) 2px, transparent 2px);
+            background-size: 60px 60px, 140px 140px;
+            animation: stars 200s linear infinite;
+        }
+        @keyframes stars { 0% { background-position: 0 0; } 100% { background-position: -400px -400px; } }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(103 232 249 / 0.25); }
+    </style>
+</head>
+<body class="min-h-screen star-bg">
+    <div class="max-w-7xl mx-auto p-6">
+        <header class="text-center py-12 border-b border-cyan-800">
+            <h1 class="text-6xl font-bold text-white flex items-center justify-center gap-4">
+                <i class="fas fa-binoculars text-yellow-300"></i> Osservatore Profondo Cielo
+            </h1>
+            <p class="text-2xl mt-3 text-cyan-300">Messier & NGC • Tutte le 88 Costellazioni</p>
+        </header>
+
+        <div class="my-8 max-w-3xl mx-auto bg-slate-900/80 p-8 rounded-3xl border border-cyan-700 text-slate-200">
+            <h2 class="text-2xl font-semibold mb-4 text-white">Cos'è Messier e NGC?</h2>
+            <p><strong>Messier (M)</strong>: 110 oggetti brillanti. <strong>NGC</strong>: migliaia di oggetti. Per costellazioni con pochi DSO ho aggiunto stelle caratteristiche.</p>
+            <p class="mt-4 text-sm text-cyan-300">Valutazioni indicative per telescopi (cieli bui ideali).</p>
+        </div>
+
+        <div class="my-8 flex flex-col md:flex-row gap-6">
+            <div class="flex-1">
+                <label class="block text-lg font-medium mb-3 text-cyan-200">Seleziona Costellazione (88):</label>
+                <select id="constellation" onchange="filterObjects()" class="w-full bg-slate-900 border-2 border-cyan-500 text-white rounded-2xl px-6 py-4 text-xl"></select>
+            </div>
+            <div class="flex-1">
+                <label class="block text-lg font-medium mb-3 text-cyan-200">Cerca:</label>
+                <input id="search" type="text" placeholder="Nome o tipo..." onkeyup="filterObjects()" class="w-full bg-slate-900 border-2 border-cyan-500 text-white rounded-2xl px-6 py-4 text-xl">
+            </div>
+            <button onclick="showAll()" class="self-end px-8 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-2xl font-medium">Mostra tutti</button>
+        </div>
+
+        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+
+    <script>
+const NOT_VISIBLE = ['Apus','Ara','Carina','Centaurus','Chamaeleon','Circinus','Crux','Dorado','Grus','Horologium','Hydrus','Indus','Lupus','Mensa','Musca','Norma','Octans','Pavo','Pictor','Reticulum','Telescopium','Triangulum Australe','Tucana','Vela','Volans'];
+const VERY_LOW = ['Antlia','Columba','Corona Australis','Fornax','Microscopium','Phoenix','Puppis','Pyxis'];
+function visNote(o) {
+    if (NOT_VISIBLE.includes(o.const)) return '<p class="text-rose-300"><strong>Da San Giorgio del Sannio (41° N):</strong> non sorge o resta quasi sull\'orizzonte: è un oggetto del cielo australe.</p>';
+    if (VERY_LOW.includes(o.const)) return '<p class="text-amber-300"><strong>Da 41° N:</strong> molto basso sull\'orizzonte sud (al massimo 5-20°): servono un orizzonte sgombro e un cielo limpido.</p>';
+    return '';
+}
+function fmtDist(d) {
+    const s = String(d);
+    if (/M$/i.test(s)) return s.replace(/M$/i, '').replace('.', ',') + ' milioni di a.l.';
+    const n = Number(s.replace(/[^0-9.]/g, ''));
+    return (isNaN(n) ? s : n.toLocaleString('it-IT')) + ' a.l.';
+}
+</script>
+<script>
+        const objects = [
+            // ANDROMEDA
+            {const:"Andromeda", name:"M31", type:"Galassia a spirale", mag:"3.4", dist:"2.5M", period:"Autunno-Inverno", desc:"Grande Galassia di Andromeda.", vis130:"Eccellente", vis70:"Buona"},
+            {const:"Andromeda", name:"M32", type:"Galassia ellittica", mag:"8.1", dist:"2.5M", period:"Autunno-Inverno", desc:"Satellite di M31.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Andromeda", name:"M110", type:"Galassia ellittica", mag:"8.5", dist:"2.5M", period:"Autunno-Inverno", desc:"Satellite di M31.", vis130:"Buona", vis70:"Difficile"},
+            {const:"Andromeda", name:"NGC 752", type:"Ammasso aperto", mag:"5.7", dist:"1300", period:"Autunno", desc:"Ammasso sparso.", vis130:"Eccellente", vis70:"Buono"},
+            {const:"Andromeda", name:"NGC 7686", type:"Ammasso aperto", mag:"5.6", dist:"2500", period:"Autunno", desc:"Cluster stellare.", vis130:"Buono", vis70:"Buono"},
+            // AQUARIUS
+            {const:"Aquarius", name:"M2", type:"Ammasso globulare", mag:"6.5", dist:"33000", period:"Estate-Autunno", desc:"Globulare compatto.", vis130:"Ottimo", vis70:"Buono"},
+            {const:"Aquarius", name:"NGC 7293", type:"Nebulosa planetaria", mag:"7.6", dist:"650", period:"Autunno", desc:"Helix Nebula.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Aquarius", name:"NGC 7009", type:"Nebulosa planetaria", mag:"8.0", dist:"2400", period:"Autunno", desc:"Saturn Nebula.", vis130:"Buona", vis70:"Difficile"},
+            // ORION
+            {const:"Orion", name:"M42", type:"Nebulosa", mag:"4", dist:"1344", period:"Inverno", desc:"Grande Nebulosa di Orione.", vis130:"Spettacolare", vis70:"Eccellente"},
+            {const:"Orion", name:"NGC 1977", type:"Nebulosa", mag:"4.6", dist:"1500", period:"Inverno", desc:"Running Man Nebula.", vis130:"Buona", vis70:"Buona"},
+            // URSA MAJOR
+            {const:"Ursa Major", name:"M81", type:"Galassia", mag:"6.9", dist:"12M", period:"Primavera", desc:"Bode's Galaxy.", vis130:"Ottima", vis70:"Buona"},
+            {const:"Ursa Major", name:"M82", type:"Galassia", mag:"8.4", dist:"12M", period:"Primavera", desc:"Cigar Galaxy.", vis130:"Ottima", vis70:"Buona"},
+            // AURIGA, CANCER, CANES VENATICI, HERCULES, SAGITTARIUS (come prima)
+            {const:"Auriga", name:"M36", type:"Ammasso aperto", mag:"6.0", dist:"4100", period:"Inverno", desc:"Ammasso stellare.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Cancer", name:"M44", type:"Ammasso aperto", mag:"3.1", dist:"600", period:"Inverno", desc:"Beehive Cluster.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Canes Venatici", name:"M51", type:"Galassia", mag:"8.4", dist:"23M", period:"Primavera", desc:"Whirlpool Galaxy.", vis130:"Ottima", vis70:"Buona"},
+            {const:"Hercules", name:"M13", type:"Ammasso globulare", mag:"5.8", dist:"22000", period:"Estate", desc:"Great Hercules Cluster.", vis130:"Spettacolare", vis70:"Buono"},
+            {const:"Sagittarius", name:"M8", type:"Nebulosa", mag:"5", dist:"4100", period:"Estate", desc:"Lagoon Nebula.", vis130:"Ottima", vis70:"Buona"},
+            // COSTELLAZIONI MANCANTI DALLA FOTO - OGGETTI AGGIUNTI
+            {const:"Antlia", name:"NGC 2997", type:"Galassia", mag:"9.6", dist:"40M", period:"Primavera", desc:"Galassia a spirale.", vis130:"Buona", vis70:"Difficile"},
+            {const:"Apus", name:"NGC 6101", type:"Ammasso globulare", mag:"9.2", dist:"50000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Difficile"},
+            {const:"Aquila", name:"NGC 6709", type:"Ammasso aperto", mag:"6.7", dist:"3500", period:"Estate", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Ara", name:"NGC 6193", type:"Ammasso aperto", mag:"5.2", dist:"4200", period:"Estate", desc:"Ammasso con nebulosa.", vis130:"Buono", vis70:"Buono"},
+            {const:"Aries", name:"NGC 772", type:"Galassia", mag:"10.3", dist:"100M", period:"Autunno", desc:"Galassia a spirale.", vis130:"Possibile", vis70:"Difficile"},
+            {const:"Boötes", name:"NGC 5466", type:"Ammasso globulare", mag:"9.1", dist:"52000", period:"Primavera", desc:"Globulare.", vis130:"Buono", vis70:"Difficile"},
+            {const:"Camelopardalis", name:"NGC 1501", type:"Nebulosa planetaria", mag:"11.5", dist:"4000", period:"Inverno", desc:"Nebulosa planetaria.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Camelopardalis", name:"NGC 2403", type:"Galassia", mag:"8.4", dist:"8M", period:"Inverno", desc:"Galassia a spirale.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Canis Major", name:"M41", type:"Ammasso aperto", mag:"4.5", dist:"2300", period:"Inverno", desc:"Ammasso aperto a circa 4° a sud di Sirio, con un centinaio di stelle: un bersaglio perfetto per binocoli e piccoli telescopi.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Capricornus", name:"M30", type:"Ammasso globulare", mag:"7.2", dist:"28000", period:"Autunno", desc:"Globulare.", vis130:"Buono", vis70:"Possibile"},
+            {const:"Carina", name:"NGC 3372", type:"Nebulosa", mag:"1.0", dist:"7500", period:"Autunno", desc:"Carina Nebula (Eta Carinae).", vis130:"Spettacolare", vis70:"Eccellente"},
+            {const:"Cassiopeia", name:"M52", type:"Ammasso aperto", mag:"6.9", dist:"5000", period:"Autunno", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Centaurus", name:"NGC 5139", type:"Ammasso globulare", mag:"3.7", dist:"17000", period:"Autunno", desc:"Omega Centauri.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Cepheus", name:"NGC 6946", type:"Galassia", mag:"8.9", dist:"25M", period:"Autunno", desc:"Galassia.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Cetus", name:"M77", type:"Galassia", mag:"8.9", dist:"47M", period:"Autunno", desc:"Galassia a spirale.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Chamaeleon", name:"NGC 3195", type:"Nebulosa planetaria", mag:"11.6", dist:"5500", period:"Autunno", desc:"Nebulosa planetaria.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Circinus", name:"NGC 5823", type:"Ammasso aperto", mag:"7.9", dist:"3500", period:"Autunno", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Columba", name:"NGC 1851", type:"Ammasso globulare", mag:"7.1", dist:"39000", period:"Inverno", desc:"Globulare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Coma Berenices", name:"M64", type:"Galassia", mag:"8.5", dist:"17M", period:"Primavera", desc:"Black Eye Galaxy.", vis130:"Buona", vis70:"Buona"},
+            {const:"Corona Australis", name:"NGC 6541", type:"Ammasso globulare", mag:"6.3", dist:"22000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Corona Borealis", name:"T Coronae Borealis", type:"Nova ricorrente", mag:"10", dist:"2600", period:"Estate", desc:"Nova ricorrente (eruzioni nel 1866 e nel 1946): in pochi giorni passa dalla magnitudine 10 alla 2, quasi quanto Alphecca. Una nuova eruzione è attesa, ma non se ne conosce la data.", vis130:"Buono", vis70:"Difficile"},
+            {const:"Corvus", name:"NGC 4361", type:"Nebulosa planetaria", mag:"10.9", dist:"9000", period:"Primavera", desc:"Nebulosa planetaria.", vis130:"Possibile", vis70:"Difficile"},
+            {const:"Crater", name:"NGC 3962", type:"Galassia", mag:"10.9", dist:"90M", period:"Primavera", desc:"Galassia ellittica.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Crux", name:"NGC 4755", type:"Ammasso aperto", mag:"4.2", dist:"6400", period:"Autunno", desc:"Jewel Box Cluster.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Cygnus", name:"NGC 7000", type:"Nebulosa", mag:"4", dist:"1600", period:"Estate", desc:"North America Nebula.", vis130:"Buona", vis70:"Buona"},
+            {const:"Delphinus", name:"NGC 6934", type:"Ammasso globulare", mag:"8.8", dist:"55000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Possibile"},
+            {const:"Dorado", name:"NGC 2070", type:"Nebulosa", mag:"5", dist:"160000", period:"Estate", desc:"Tarantula Nebula (LMC).", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Draco", name:"NGC 6543", type:"Nebulosa planetaria", mag:"8.1", dist:"3000", period:"Estate", desc:"Cat's Eye Nebula.", vis130:"Buona", vis70:"Buona"},
+            {const:"Equuleus", name:"NGC 7015", type:"Galassia", mag:"12", dist:"200M", period:"Autunno", desc:"Galassia.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Eridanus", name:"NGC 1535", type:"Nebulosa planetaria", mag:"9.6", dist:"2000", period:"Inverno", desc:"Nebulosa planetaria.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Fornax", name:"NGC 1365", type:"Galassia", mag:"9.8", dist:"60M", period:"Autunno", desc:"Galassia a barra.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Gemini", name:"M35", type:"Ammasso aperto", mag:"5.1", dist:"2800", period:"Inverno", desc:"Ammasso aperto.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Grus", name:"NGC 7213", type:"Galassia", mag:"10.0", dist:"70M", period:"Autunno", desc:"Galassia.", vis130:"Possibile", vis70:"Difficile"},
+            {const:"Horologium", name:"NGC 1261", type:"Ammasso globulare", mag:"8.4", dist:"53000", period:"Autunno", desc:"Globulare.", vis130:"Buono", vis70:"Difficile"},
+            {const:"Hydra", name:"M48", type:"Ammasso aperto", mag:"5.8", dist:"1500", period:"Primavera", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Hydrus", name:"NGC 602", type:"Ammasso", mag:"7.5", dist:"200000", period:"Autunno", desc:"Ammasso in LMC.", vis130:"Buono", vis70:"Buono"},
+            {const:"Indus", name:"NGC 7090", type:"Galassia", mag:"10.5", dist:"30M", period:"Autunno", desc:"Galassia.", vis130:"Possibile", vis70:"Difficile"},
+            {const:"Lacerta", name:"NGC 7243", type:"Ammasso aperto", mag:"6.4", dist:"2500", period:"Autunno", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Leo", name:"M65", type:"Galassia", mag:"9.3", dist:"35M", period:"Primavera", desc:"Galassia spirale.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Leo Minor", name:"NGC 3432", type:"Galassia", mag:"11.2", dist:"40M", period:"Primavera", desc:"Galassia.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Lepus", name:"NGC 2017", type:"Ammasso multiplo", mag:"7.0", dist:"1500", period:"Inverno", desc:"Ammasso stellare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Libra", name:"NGC 5897", type:"Ammasso globulare", mag:"8.6", dist:"50000", period:"Primavera", desc:"Globulare.", vis130:"Buono", vis70:"Possibile"},
+            {const:"Lupus", name:"NGC 5927", type:"Ammasso globulare", mag:"8.0", dist:"25000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Lynx", name:"NGC 2419", type:"Ammasso globulare", mag:"10.4", dist:"300000", period:"Inverno", desc:"Intergalattico Globular.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Lyra", name:"M57", type:"Nebulosa planetaria", mag:"8.8", dist:"2300", period:"Estate", desc:"Ring Nebula.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Mensa", name:"Large Magellanic Cloud", type:"Galassia", mag:"0.9", dist:"163000", period:"Estate", desc:"Grande Nube di Magellano.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Microscopium", name:"NGC 6925", type:"Galassia", mag:"11", dist:"80M", period:"Estate", desc:"Galassia.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Monoceros", name:"NGC 2244", type:"Ammasso + nebulosa", mag:"4.8", dist:"5500", period:"Inverno", desc:"Rosette Nebula Cluster.", vis130:"Buono", vis70:"Buono"},
+            {const:"Musca", name:"NGC 4833", type:"Ammasso globulare", mag:"7.4", dist:"22000", period:"Autunno", desc:"Globulare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Norma", name:"NGC 6087", type:"Ammasso aperto", mag:"5.4", dist:"3500", period:"Estate", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Octans", name:"NGC 2573", type:"Galassia", mag:"12", dist:"100M", period:"Autunno", desc:"Galassia polare sud.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Ophiuchus", name:"M10", type:"Ammasso globulare", mag:"6.6", dist:"14000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Pavo", name:"NGC 6752", type:"Ammasso globulare", mag:"5.4", dist:"13000", period:"Estate", desc:"Globulare luminoso.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Pegasus", name:"M15", type:"Ammasso globulare", mag:"6.2", dist:"33000", period:"Autunno", desc:"Globulare.", vis130:"Buono", vis70:"Buono"},
+            {const:"Perseus", name:"NGC 869/884", type:"Ammasso doppio", mag:"4", dist:"7600", period:"Autunno", desc:"Double Cluster.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Phoenix", name:"NGC 625", type:"Galassia", mag:"8.7", dist:"30M", period:"Autunno", desc:"Galassia irregolare.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Pictor", name:"NGC 1705", type:"Galassia", mag:"11", dist:"17M", period:"Inverno", desc:"Galassia.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Pisces", name:"M74", type:"Galassia", mag:"9.4", dist:"30M", period:"Autunno", desc:"Galassia a spirale.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Piscis Austrinus", name:"NGC 7314", type:"Galassia", mag:"10.9", dist:"50M", period:"Autunno", desc:"Galassia.", vis130:"Possibile", vis70:"Difficile"},
+            {const:"Puppis", name:"NGC 2439", type:"Ammasso aperto", mag:"6.9", dist:"10000", period:"Inverno", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Pyxis", name:"NGC 2818", type:"Nebulosa planetaria", mag:"8.2", dist:"10000", period:"Inverno", desc:"Nebulosa planetaria.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Reticulum", name:"NGC 1313", type:"Galassia", mag:"9.1", dist:"15M", period:"Autunno", desc:"Galassia.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Sagitta", name:"M71", type:"Ammasso globulare", mag:"8.2", dist:"13000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Possibile"},
+            {const:"Scorpius", name:"M4", type:"Ammasso globulare", mag:"5.6", dist:"7200", period:"Estate", desc:"Globulare vicino Antares.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Sculptor", name:"NGC 253", type:"Galassia", mag:"7.6", dist:"11M", period:"Autunno", desc:"Sculptor Galaxy.", vis130:"Buona", vis70:"Buona"},
+            {const:"Scutum", name:"M11", type:"Ammasso aperto", mag:"5.8", dist:"6000", period:"Estate", desc:"Wild Duck Cluster.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Serpens", name:"M5", type:"Ammasso globulare", mag:"5.6", dist:"24500", period:"Estate", desc:"Globulare.", vis130:"Eccellente", vis70:"Buono"},
+            {const:"Sextans", name:"NGC 3115", type:"Galassia", mag:"8.9", dist:"30M", period:"Primavera", desc:"Spindle Galaxy.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Taurus", name:"M45", type:"Ammasso aperto", mag:"1.6", dist:"440", period:"Inverno", desc:"Pleiadi.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Telescopium", name:"NGC 6584", type:"Ammasso globulare", mag:"8.2", dist:"45000", period:"Estate", desc:"Globulare.", vis130:"Buono", vis70:"Possibile"},
+            {const:"Triangulum", name:"M33", type:"Galassia", mag:"5.7", dist:"2.7M", period:"Autunno", desc:"Triangulum Galaxy.", vis130:"Buona", vis70:"Buona"},
+            {const:"Triangulum Australe", name:"NGC 6025", type:"Ammasso aperto", mag:"5.1", dist:"2500", period:"Autunno", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Tucana", name:"NGC 104", type:"Ammasso globulare", mag:"4.0", dist:"13000", period:"Autunno", desc:"47 Tucanae.", vis130:"Eccellente", vis70:"Eccellente"},
+            {const:"Ursa Minor", name:"NGC 6217", type:"Galassia", mag:"11", dist:"60M", period:"Estate", desc:"Galassia.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Vela", name:"NGC 2547", type:"Ammasso aperto", mag:"4.7", dist:"1500", period:"Autunno", desc:"Ammasso aperto.", vis130:"Buono", vis70:"Buono"},
+            {const:"Virgo", name:"M87", type:"Galassia", mag:"8.6", dist:"55M", period:"Primavera", desc:"Galassia con getto.", vis130:"Buona", vis70:"Possibile"},
+            {const:"Volans", name:"NGC 2397", type:"Galassia", mag:"11.5", dist:"60M", period:"Autunno", desc:"Galassia.", vis130:"Difficile", vis70:"Difficile"},
+            {const:"Vulpecula", name:"M27", type:"Nebulosa planetaria", mag:"7.4", dist:"1350", period:"Estate", desc:"Dumbbell Nebula.", vis130:"Buona", vis70:"Buona"}
+        ];
+
+        const allConstellations = ["Andromeda","Antlia","Apus","Aquarius","Aquila","Ara","Aries","Auriga","Boötes","Caelum","Camelopardalis","Cancer","Canes Venatici","Canis Major","Canis Minor","Capricornus","Carina","Cassiopeia","Centaurus","Cepheus","Cetus","Chamaeleon","Circinus","Columba","Coma Berenices","Corona Australis","Corona Borealis","Corvus","Crater","Crux","Cygnus","Delphinus","Dorado","Draco","Equuleus","Eridanus","Fornax","Gemini","Grus","Hercules","Horologium","Hydra","Hydrus","Indus","Lacerta","Leo","Leo Minor","Lepus","Libra","Lupus","Lynx","Lyra","Mensa","Microscopium","Monoceros","Musca","Norma","Octans","Ophiuchus","Orion","Pavo","Pegasus","Perseus","Phoenix","Pictor","Pisces","Piscis Austrinus","Puppis","Pyxis","Reticulum","Sagitta","Sagittarius","Scorpius","Sculptor","Scutum","Serpens","Sextans","Taurus","Telescopium","Triangulum","Triangulum Australe","Tucana","Ursa Major","Ursa Minor","Vela","Virgo","Volans","Vulpecula"].sort();
+
+        function populateSelect() {
+            const select = document.getElementById('constellation');
+            allConstellations.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c; select.appendChild(opt);
+            });
+        }
+
+        function filterObjects() {
+            const selected = document.getElementById('constellation').value;
+            const searchTerm = document.getElementById('search').value.toLowerCase().trim();
+            const container = document.getElementById('results');
+            container.innerHTML = '';
+
+            const filtered = objects.filter(o => {
+                const matchConst = !selected || o.const === selected;
+                const matchSearch = !searchTerm || o.name.toLowerCase().includes(searchTerm) || o.desc.toLowerCase().includes(searchTerm) || o.type.toLowerCase().includes(searchTerm);
+                return matchConst && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-20 text-2xl text-cyan-300">Nessun oggetto Messier o NGC luminoso per questa selezione (alcune costellazioni non ne hanno alla portata di strumenti amatoriali). Prova un'altra selezione!</div>`;
+                return;
+            }
+
+            filtered.forEach(obj => {
+                const card = document.createElement('div');
+                card.className = 'card bg-slate-900/90 border border-cyan-700 rounded-3xl p-8';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-3xl font-bold text-white">${obj.name}</h3>
+                            <p class="text-cyan-400">${obj.type} • ${obj.const}</p>
+                        </div>
+                        <span class="px-4 py-1 bg-cyan-950 rounded-2xl text-sm">Mag: ${obj.mag}</span>
+                    </div>
+                    <div class="mt-6 space-y-3 text-slate-300">
+                        <p><strong>Distanza:</strong> ${fmtDist(obj.dist)}</p>
+                        <p><strong>Periodo migliore:</strong> ${obj.period}</p>
+            ${visNote(obj)}
+                        <p class="leading-relaxed">${obj.desc}</p>
+                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-cyan-800 text-sm">
+                            <div class="bg-emerald-950/60 p-4 rounded-2xl"><strong class="text-emerald-400">Skywatcher 130/900:</strong><br>${obj.vis130}</div>
+                            <div class="bg-amber-950/60 p-4 rounded-2xl"><strong class="text-amber-400">Bresser 70/900:</strong><br>${obj.vis70}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function showAll() {
+            document.getElementById('constellation').value = "";
+            document.getElementById('search').value = "";
+            filterObjects();
+        }
+
+        populateSelect();
+        document.getElementById('constellation').value = "Orion";
+        filterObjects();
+    </script>
+<footer style="text-align:center;padding:16px;font-size:.8rem;opacity:.7">Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</footer>
+</body>
+</html>
