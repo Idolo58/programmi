@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Destino del Sole - Simulatore Avanzato</title>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #020208;
+            color: #e0e0ff;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #08081a 0%, #020208 80%);
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.8rem;
+            margin: 0;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 100, 50, 0.6);
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #8a8ab0;
+            margin-top: 10px;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .simulator-box {
+            background: rgba(8, 8, 25, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+        }
+
+        .viewport {
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 30px;
+        }
+
+        .star {
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.6s ease-in-out;
+        }
+
+        .nebula-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: all 1s ease-in-out;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .time-label {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            min-width: 280px;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.3);
+        }
+
+        .step-indicator {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            color: #8a8ab0;
+            margin-bottom: 5px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #12122b;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ff6a00;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff6a00;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .info-panel {
+            min-height: 160px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid #ff6a00;
+            padding: 25px;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .info-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .info-text {
+            line-height: 1.7;
+            color: #d1d1ed;
+            font-size: 1.05rem;
+        }
+
+        .stars-section {
+            margin-top: 60px;
+        }
+
+        .stars-section h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .star-card {
+            background: rgba(12, 12, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .star-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 106, 0, 0.4);
+            box-shadow: 0 10px 25px rgba(255, 106, 0, 0.15);
+        }
+
+        .star-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .star-detail {
+            font-size: 0.95rem;
+            color: #b0b0d0;
+            margin: 3px 0;
+        }
+
+        .star-phase-badge {
+            margin-top: 12px;
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(255, 106, 0, 0.15);
+            border: 1px solid rgba(255, 106, 0, 0.3);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #ff9d5c;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .time-label {
+                min-width: auto;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    
+        .controls-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; width:100%; }
+        .btn { background:#12122b; color:#e0e0ff; border:1px solid rgba(255,106,0,0.4); border-radius:8px; padding:9px 16px; font-family:inherit; font-size:0.9rem; cursor:pointer; }
+        .btn:hover { background:#1c1c40; border-color:#ff6a00; }
+        .btn.active { background:#ff6a00; color:#000; }
+        .chips { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; margin:0 0 16px; }
+        .chip { background:rgba(255,106,0,0.07); border:1px solid rgba(255,106,0,0.25); border-radius:10px; padding:10px 12px; }
+        .chip b { display:block; font-size:0.7rem; letter-spacing:1px; text-transform:uppercase; color:#ff9d5c; margin-bottom:3px; }
+        .chip span { font-size:0.92rem; color:#e8e8ff; }
+        .earth-box { margin-top:14px; padding:12px 14px; border-left:3px solid #4aa3ff; background:rgba(74,163,255,0.07); border-radius:0 8px 8px 0; font-size:0.95rem; color:#cfe3ff; }
+        #index-nav { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:0 0 30px; }
+        #index-nav a { color:#ffd700; border:1px solid rgba(255,215,0,0.3); border-radius:999px; padding:6px 14px; font-size:0.85rem; text-decoration:none; }
+        #index-nav a:hover { background:rgba(255,215,0,0.1); }
+        .guide section { background:rgba(8,8,25,0.7); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:24px 28px; margin:0 0 26px; line-height:1.7; }
+        .guide h2 { font-family:'Cinzel',serif; color:#fff; font-size:1.6rem; margin:0 0 12px; text-shadow:0 0 12px rgba(255,255,255,0.15); }
+        .guide h3 { color:#ffd700; font-size:1.05rem; margin:18px 0 4px; }
+        .guide p, .guide li { color:#d1d1ed; font-size:1rem; }
+        .guide ul, .guide ol { padding-left:22px; }
+        .guide table { width:100%; border-collapse:collapse; font-size:0.85rem; display:block; overflow-x:auto; margin-top:8px; }
+        .guide th, .guide td { text-align:left; padding:7px 10px; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .guide th { color:#ff9d5c; white-space:nowrap; }
+        .guide td { color:#d1d1ed; }
+        .box { background:rgba(255,106,0,0.08); border-left:4px solid #ff6a00; padding:10px 14px; border-radius:0 8px 8px 0; margin:12px 0; }
+        .filters { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:0 0 26px; }
+        .filters input, .filters select { background:#12122b; color:#e0e0ff; border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:9px 12px; font-family:inherit; font-size:0.9rem; min-width:200px; }
+        .star-note { font-size:0.85rem; color:#9a9ac0; margin:8px 0 0; font-style:italic; }
+        .vis-line { font-size:0.85rem; color:#7fd6a8; margin:6px 0 0; }
+        .go-btn { margin-top:10px; background:none; color:#ff9d5c; border:1px solid rgba(255,106,0,0.4); border-radius:6px; padding:5px 10px; cursor:pointer; font-family:inherit; font-size:0.8rem; }
+        .go-btn:hover { background:rgba(255,106,0,0.15); }
+        footer { text-align:center; padding:30px 20px 40px; font-size:0.85rem; color:#8a8ab0; }
+        @media (max-width:768px){ .guide section{ padding:18px 16px; } }
+</style>
+</head>
+<body>
+<header>
+    <h1>IL DESTINO DEL SOLE</h1>
+    <div class="subtitle">Evoluzione stellare in 15 atti: dalla nube alla nana nera</div>
+</header>
+<div class="container">
+  <div class="simulator-box">
+    <div class="step-indicator" id="stepIndicator">Atto I di XV</div>
+    <div class="viewport" id="viewport"><div class="nebula-bg" id="nebula"></div><div class="star" id="starElement"></div></div>
+    <div class="controls">
+      <div class="timeline-container">
+        <div class="time-label" id="timeDisplay">Tempo: 0 Anni</div>
+        <input type="range" id="timeSlider" min="0" max="14" value="0" step="1" aria-label="Fase dell'evoluzione">
+      </div>
+      <div class="controls-row">
+        <button class="btn" id="btnPrev">◀ Fase precedente</button>
+        <button class="btn" id="btnPlay">▶ Riproduci</button>
+        <button class="btn" id="btnNext">Fase successiva ▶</button>
+      </div>
+    </div>
+    <div class="info-panel">
+      <h3 class="info-title" id="phaseTitle">-</h3>
+      <div class="chips" id="phaseChips"></div>
+      <div class="info-text" id="phaseDescription"></div>
+      <div class="earth-box" id="phaseEarth"></div>
+    </div>
+  </div>
+
+<div class="guide">
+<nav id="index-nav">
+  <a href="#g-massa">La massa decide</a><a href="#g-terra">Il futuro della Terra</a><a href="#g-sapere">Come lo sappiamo</a><a href="#g-osservare">Da osservare</a><a href="#g-faq">Domande</a><a href="#g-glossario">Glossario</a><a href="#censimento">Il censimento</a>
+</nav>
+
+<section id="g-massa"><h2>La massa decide il destino</h2>
+<p>Il Sole segue la strada delle stelle «medie». Ma la massa iniziale cambia tutto: più una stella è massiccia, più brucia in fretta il proprio combustibile. Come ordine di grandezza, la durata della sequenza principale è circa <strong>10 miliardi di anni × (M / massa del Sole)<sup>−2,5</sup></strong>.</p>
+<table><thead><tr><th>Massa iniziale</th><th>Tipo di stella</th><th>Vita in sequenza principale</th><th>Destino</th><th>Esempi</th></tr></thead><tbody>
+<tr><td>Sotto 0,08 M☉</td><td>Nana bruna</td><td>—</td><td>Non innesca l'idrogeno: si raffredda lentamente</td><td>Luhman 16 (a circa 6,5 a.l.)</td></tr>
+<tr><td>0,08-0,5 M☉</td><td>Nana rossa</td><td>Da circa 50 miliardi a oltre 10.000 miliardi di anni</td><td>Nana bianca di elio (nessuna esiste ancora: l'Universo è troppo giovane)</td><td>Proxima Centauri (0,12 M☉)</td></tr>
+<tr><td>0,5-2 M☉</td><td>Nana gialla/arancione</td><td>Da 50 a 1,5 miliardi di anni</td><td>Gigante rossa, flash dell'elio, nebulosa planetaria, nana bianca di carbonio e ossigeno</td><td>Sole, Alpha Centauri A, Arturo</td></tr>
+<tr><td>2-8 M☉</td><td>Stella bianca o azzurra</td><td>Da 1,5 miliardi a circa 50 milioni di anni</td><td>Nana bianca (fino a circa 1,2-1,3 M☉), senza flash dell'elio</td><td>Sirio A (2,06), Vega, Regolo (3,8)</td></tr>
+<tr><td>8-25 M☉</td><td>Stella azzurra, poi supergigante</td><td>Da circa 50 a 5-10 milioni di anni</td><td>Supernova a collasso del nucleo e stella di neutroni</td><td>Betelgeuse (15-20 M☉), Rigel (circa 20 M☉)</td></tr>
+<tr><td>Oltre 25 M☉</td><td>Stella molto massiccia (anche Wolf-Rayet)</td><td>Meno di 5 milioni di anni</td><td>Supernova o collasso diretto e buco nero</td><td>Eta Carinae (oltre 100 M☉)</td></tr>
+</tbody></table>
+<p>Betelgeuse esploderà come supernova entro alcune decine di migliaia di anni, ma non c'è nessun segno di una esplosione imminente.</p></section>
+
+<section id="g-terra"><h2>Il futuro della Terra, tappa per tappa</h2>
+<table><thead><tr><th>Da oggi</th><th>Cosa succede</th></tr></thead><tbody>
+<tr><td>Ogni 100 milioni di anni</td><td>Il Sole diventa più luminoso di circa l'1%.</td></tr>
+<tr><td>Circa 600 milioni di anni</td><td>Con meno CO₂ la fotosintesi C3, la più comune tra le piante, non funziona più. Gli altri vegetali (C4) resistono più a lungo.</td></tr>
+<tr><td>Circa 1-1,5 miliardi di anni</td><td>Con il Sole più luminoso del 10%, effetto serra umido e perdita degli oceani.</td></tr>
+<tr><td>Circa 3,5 miliardi di anni</td><td>Sole più luminoso del 40%: la Terra è un pianeta bollente come Venere.</td></tr>
+<tr><td>Circa 5,5 miliardi di anni</td><td>Fine dell'idrogeno nel nucleo: il Sole diventa una subgigante.</td></tr>
+<tr><td>Circa 6-7,6 miliardi di anni</td><td>Ramo delle giganti rosse: Mercurio e Venere inghiottiti, Terra molto probabilmente distrutta.</td></tr>
+<tr><td>Circa 7,6 miliardi di anni</td><td>Flash dell'elio e ramo orizzontale (circa 100 milioni di anni).</td></tr>
+<tr><td>Circa 7,8 miliardi di anni</td><td>AGB, nebulosa planetaria e nana bianca di circa 0,54 M☉.</td></tr>
+</tbody></table>
+<div class="box">Sono tempi immensi rispetto alla storia umana: l'<em>Homo sapiens</em> ha appena 300.000 anni. Le proposte per «salvare» la Terra (spostarla con i passaggi ravvicinati di asteroidi, schermarla) restano ipotesi teoriche.</div></section>
+
+<section id="g-sapere"><h2>Come facciamo a saperlo?</h2>
+<ul>
+<li><strong>Gli ammassi stellari</strong>: le stelle di un ammasso nascono insieme e hanno la stessa età. Nel diagramma H-R, il punto in cui lasciano la sequenza principale (il «turn-off») dà l'età: Pleiadi circa 100 milioni di anni, Iadi circa 650, M67 circa 4 miliardi, ammassi globulari circa 12-13 miliardi.</li>
+<li><strong>I meteoriti</strong>: i granuli più antichi (le CAI) dei meteoriti hanno 4,567 miliardi di anni, l'età del Sistema Solare.</li>
+<li><strong>L'eliosismologia</strong>: le onde sonore che attraversano il Sole mostrano la struttura interna.</li>
+<li><strong>I neutrini solari</strong>: confermano le reazioni di fusione nel nucleo (rivelati anche quelli del ciclo CNO da Borexino nel 2020).</li>
+<li><strong>I modelli stellari</strong>: programmi come MESA risolvono le equazioni dell'equilibrio della stella e seguono l'evoluzione in tutte le fasi.</li>
+<li><strong>Le nane bianche</strong>: il loro raffreddamento regolare funziona come un orologio (cosmocronologia).</li></ul></section>
+
+<section id="g-osservare"><h2>Da osservare con i propri occhi</h2>
+<p>Molte fasi si possono vedere dal cortile di casa, anche con un telescopio come uno Skywatcher 130/900:</p>
+<ul>
+<li><strong>Nascita</strong>: la Nebulosa di Orione (M42), in inverno.</li>
+<li><strong>Giovani stelle</strong>: le Pleiadi (M45), in autunno e inverno.</li>
+<li><strong>Sequenza principale</strong>: Sirio, Vega, Altair, Castore. Confronta i colori: le più calde sono bianco-azzurre.</li>
+<li><strong>Giganti</strong>: Arturo (arancione), Aldebaran (arancione-rossa), Polluce.</li>
+<li><strong>Stelle variabili</strong>: Mira, nella Balena, che varia da magnitudine 2 a 10 in circa 11 mesi.</li>
+<li><strong>Nebulose planetarie</strong>: M57 (Anello, estate) e M27 (Manubrio, estate-autunno).</li>
+<li><strong>Nana bianca</strong>: Sirio B (molto difficile: serve un telescopio più grande, cielo calmo e pazienza).</li></ul></section>
+
+<section id="g-faq"><h2>Domande frequenti</h2>
+<h3>Il Sole diventerà una supernova?</h3><p>No. Per diventare una supernova a collasso del nucleo serve una massa di almeno 8-10 volte quella solare. Il Sole finirà come nana bianca.</p>
+<h3>Perché il Sole diventa più grande se brucia meno idrogeno?</h3><p>Perché quando il nucleo smette di fondere l'idrogeno si contrae e si scalda, e la fusione si sposta nel guscio attorno al nucleo, che produce più energia: gli strati esterni sono spinti verso l'esterno.</p>
+<h3>Che cosa resterà del Sistema Solare?</h3><p>Una nana bianca di circa 0,54 M☉ con i pianeti esterni su orbite più larghe, e forse qualche resto dei pianeti interni. Nelle atmosfere di molte nane bianche si trovano tracce di materiale proveniente da pianeti distrutti.</p>
+<h3>Una nana bianca può ritornare a vivere?</h3><p>Da sola no. Se fa parte di un sistema doppio e accumula materia dalla compagna può esplodere come supernova Ia o causare novae ricorrenti.</p>
+<h3>Perché la fase 14 non si chiama «nana rossa»?</h3><p>Perché una nana rossa è una stella che brucia idrogeno (massa minore di circa 0,5 M☉). Una nana bianca fredda non ha alcuna fusione: il colore rosso è solo la temperatura bassa.</p></section>
+
+<section id="g-glossario"><h2>Glossario</h2>
+<ul>
+<li><strong>M☉, R☉, L☉</strong>: massa, raggio e luminosità del Sole, usati come unità di misura.</li>
+<li><strong>Sequenza principale</strong>: la fase in cui una stella fonde idrogeno in elio nel nucleo.</li>
+<li><strong>Equilibrio idrostatico</strong>: la gravità verso l'interno è bilanciata dalla pressione verso l'esterno.</li>
+<li><strong>Degenerazione</strong>: stato della materia molto densa in cui la pressione dipende dal principio di Pauli, non dalla temperatura.</li>
+<li><strong>Flash dell'elio</strong>: accensione esplosiva dell'elio in un nucleo degenerato.</li>
+<li><strong>AGB</strong>: ramo asintotico delle giganti: la fase di doppio guscio, prima della nebulosa planetaria.</li>
+<li><strong>Nebulosa planetaria</strong>: guscio di gas espulso da una stella di massa piccola o media, che non c'entra con i pianeti.</li>
+<li><strong>Limite di Chandrasekhar</strong>: massa massima di una nana bianca, circa 1,4 M☉.</li>
+<li><strong>Metallicità</strong>: per gli astronomi, la frazione di elementi più pesanti dell'elio.</li>
+<li><strong>Diagramma H-R</strong>: grafico della luminosità in funzione della temperatura delle stelle.</li></ul></section>
+</div>
+
+  <div class="stars-section" id="censimento">
+    <h2>Il Censimento Galattico: <span id="starCount">50</span> oggetti celesti in tutti gli stadi evolutivi</h2>
+    <div class="filters">
+      <input type="search" id="searchBox" placeholder="Cerca un oggetto (es. Sirio)">
+      <select id="phaseFilter"></select>
+    </div>
+    <div class="grid-container" id="starsGrid"></div>
+  </div>
+</div>
+<footer>Realizzato con l'I.A. su progetto di dr. Idolo Tedesco (idolo1958 Instagram)</footer>
+
+<script>
+const phases = [
+{
+"title": "1. Collasso della Nube Molecolare (Nascita)",
+"time": "Tempo: 0 Anni",
+"sole": "Circa 4,6 miliardi di anni fa",
+"durata": "Qualche milione di anni per formare il nucleo; circa 100.000 anni per il collasso finale",
+"temp": "10-20 K (circa −260 °C)",
+"raggio": "Nucleo denso di circa 0,1 anni luce",
+"lum": "Nessuna: la nube è fredda e quasi buia",
+"text": [
+"Una nube molecolare è fatta soprattutto di idrogeno molecolare (H₂), elio e un po' di polvere. È fredda e relativamente densa (circa 10.000 particelle per cm³, ancora un vuoto migliore di quelli dei laboratori). Un urto, come l'onda di una supernova vicina o la collisione fra nubi, comprime alcune regioni fino a superare la massa di Jeans: da quel momento la gravità vince sulla pressione e il nucleo collassa.",
+"La nube si frammenta in più nuclei e quasi tutte le stelle nascono in gruppi, in ammassi aperti. Il Sole è probabilmente nato in un ammasso di centinaia o migliaia di stelle, poi disperso in qualche centinaio di milioni di anni. Nei meteoriti più antichi si trovano tracce di alluminio-26 e ferro-60, isotopi di vita breve che fanno pensare a una supernova vicina."
+],
+"terra": "Non esiste ancora nulla: pianeti e Terra nasceranno dal disco di gas e polvere che si forma attorno alla protostella."
+},
+{
+"title": "2. Fase di Protostella",
+"time": "Tempo: +100.000 Anni",
+"sole": "Circa 4,6 miliardi di anni fa",
+"durata": "100.000-500.000 anni (Classi 0 e I)",
+"temp": "Superficie circa 3.000-4.000 K; nucleo fino a circa 1 milione di K",
+"raggio": "Qualche raggio solare, avvolta da un bozzolo molto più grande",
+"lum": "Da pochi a decine di L☉, quasi tutta nell'infrarosso (energia di caduta del gas)",
+"text": [
+"Il gas che cade al centro libera energia gravitazionale che diventa calore. La protostella cresce di massa, ma resta nascosta in un bozzolo di polvere: si vede solo nell'infrarosso e nelle onde radio. Per la conservazione del momento angolare il materiale cade su un disco di accrescimento e solo una parte arriva sulla stella.",
+"Dai poli partono getti bipolari che urtano il gas circostante e formano gli oggetti Herbig-Haro. Quando la temperatura centrale supera circa 1 milione di K comincia la fusione del deuterio, ma non ancora quella dell'idrogeno. Gli astronomi classificano le protostelle in Classe 0, I, II e III in base allo spettro infrarosso."
+],
+"terra": "Nel disco i granelli di polvere si aggregano in ciottoli e poi in planetesimi: i mattoni dei pianeti."
+},
+{
+"title": "3. Fase T Tauri (Fase Giovanile)",
+"time": "Tempo: +1-10 Milioni di Anni",
+"sole": "Da circa 4,6 a 4,55 miliardi di anni fa",
+"durata": "10-50 milioni di anni",
+"temp": "Circa 4.000-5.000 K",
+"raggio": "Da 2-3 R☉ a circa 1,3 R☉",
+"lum": "Da 2-3 L☉ a circa 1 L☉",
+"text": [
+"Il bozzolo si è dissolto e la stella si vede in luce visibile, ma non è ancora in equilibrio: si contrae lentamente lungo la traccia di Hayashi, perdendo luminosità. Ha un'intensa attività magnetica, macchie enormi, brillamenti, forti variazioni di luce e un vento stellare che disperde il gas residuo.",
+"Le T Tauri «classiche» accrescono ancora gas dal disco, quelle «a righe deboli» lo hanno ormai perso. Il disco dura in media pochi milioni di anni, quindi i giganti gassosi si formano in fretta: Giove e Saturno nacquero per primi."
+],
+"terra": "I pianeti rocciosi si assemblano per collisioni di planetesimi: la Terra si forma in circa 50-100 milioni di anni e l'impatto con Theia, che crea la Luna, avviene circa 4,5 miliardi di anni fa."
+},
+{
+"title": "4. ZAMS: Ingresso in Sequenza Principale",
+"time": "Tempo: +50 Milioni di Anni",
+"sole": "Circa 4,5 miliardi di anni fa",
+"durata": "È il punto di arrivo: la stella resterà sulla sequenza per circa 10 miliardi di anni",
+"temp": "Circa 5.600 K in superficie; nucleo circa 13-15 milioni di K",
+"raggio": "Circa 0,87 R☉",
+"lum": "Circa 0,7 L☉ (il giovane Sole era più debole del 30%)",
+"text": [
+"La contrazione porta il nucleo a una temperatura sufficiente (oltre circa 10 milioni di K) perché i protoni superino la repulsione elettrica e si fondano in elio con la catena protone-protone. Il calore prodotto ferma la contrazione: la stella raggiunge l'equilibrio idrostatico, in cui la gravità verso l'interno è bilanciata dalla pressione del gas verso l'esterno. (Solo nelle stelle molto più massicce del Sole conta molto anche la pressione di radiazione.)",
+"Questo è il punto ZAMS (Zero Age Main Sequence, sequenza principale di età zero). Il Sole giovane era circa il 30% meno luminoso di oggi: il «paradosso del giovane Sole debole» si chiede perché la Terra primordiale non fosse ghiacciata. La risposta sta soprattutto in un'atmosfera più ricca di gas serra."
+],
+"terra": "La Terra ha 50-100 milioni di anni: un oceano di magma che si raffredda, poi i primi oceani d'acqua."
+},
+{
+"title": "5. Sequenza Principale Media (Fase Attuale del Sole)",
+"time": "Tempo: 4,6 Miliardi di Anni",
+"sole": "Oggi: il Sole è circa a metà della sequenza principale",
+"durata": "Circa 10 miliardi di anni in tutto; ne sono passati 4,6",
+"temp": "5.772 K in superficie; nucleo 15,7 milioni di K",
+"raggio": "1 R☉ = 696.000 km",
+"lum": "1 L☉ = 3,83 × 10²⁶ W",
+"text": [
+"Nel nucleo il Sole trasforma circa 600 milioni di tonnellate di idrogeno in elio ogni secondo; la differenza di massa, circa 4 milioni di tonnellate, diventa energia secondo E = mc². L'energia impiega migliaia di anni (le stime vanno da 10.000 a 170.000) per uscire dalle zone radiativa e convettiva, mentre i neutrini escono in pochi secondi e arrivano sulla Terra in 8 minuti.",
+"La stella è stabile, ma non immutabile: l'elio si accumula nel nucleo, che diventa più denso e caldo, e la luminosità cresce di circa l'1% ogni 100 milioni di anni."
+],
+"terra": "La Terra è nella zona abitabile: acqua liquida e vita da circa 3,5-4 miliardi di anni."
+},
+{
+"title": "6. Tarda Sequenza Principale (Riscaldamento graduale)",
+"time": "Tempo: circa 8 Miliardi di Anni",
+"sole": "Fra circa 1 e 5 miliardi di anni da oggi",
+"durata": "Circa 4-5 miliardi di anni",
+"temp": "Circa 5.700-5.900 K",
+"raggio": "Circa 1,2-1,5 R☉",
+"lum": "Da 1,1 a circa 1,7 L☉",
+"text": [
+"Sempre più elio si accumula nel nucleo, che si contrae e si scalda: le reazioni diventano più rapide e la luminosità aumenta. Il Sole cresce lentamente di dimensioni.",
+"Per la Terra le conseguenze sono pesanti, molto prima di questa fase: fra circa 600 milioni di anni il calo di CO₂ renderà impossibile la fotosintesi della maggior parte delle piante (tipo C3); fra 1 e 1,5 miliardi di anni il Sole sarà più luminoso del 10% e la Terra entrerà in un «effetto serra umido»: gli oceani evaporeranno e il vapore, scisso dagli UV, perderà l'idrogeno nello spazio."
+],
+"terra": "Con il Sole più luminoso del 40% (fra circa 3,5 miliardi di anni) la Terra sarà simile a Venere."
+},
+{
+"title": "7. Esaurimento dell'Idrogeno e Ramo delle Subgiganti",
+"time": "Tempo: circa 10,5 Miliardi di Anni",
+"sole": "Fra circa 5,5 miliardi di anni da oggi",
+"durata": "Circa 1 miliardo di anni",
+"temp": "Da circa 5.800 a circa 5.000 K",
+"raggio": "Da 1,5 a 2-3 R☉",
+"lum": "Da circa 2 a 3 L☉",
+"text": [
+"Quando l'idrogeno nel nucleo è finito, il nucleo di elio, inerte, si contrae lentamente (non collassa) e si scalda, finché l'idrogeno brucia in un guscio attorno al nucleo. Il guscio produce più energia del vecchio nucleo, gli strati esterni si espandono e si raffreddano: la stella diventa una subgigante e lascia la sequenza principale del diagramma H-R.",
+"Il nucleo di elio diventa «degenerato»: gli elettroni sono così compressi che, per il principio di esclusione di Pauli, resistono a un'ulteriore contrazione. Questa proprietà sarà decisiva per il flash dell'elio."
+],
+"terra": "Il pianeta è già un deserto rovente."
+},
+{
+"title": "8. Ramo delle Giganti Rosse (Espansione Massima)",
+"time": "Tempo: circa 11-12 Miliardi di Anni",
+"sole": "Fra circa 6 e 7,6 miliardi di anni da oggi",
+"durata": "Circa 600-700 milioni di anni",
+"temp": "Scende a circa 3.100-3.500 K",
+"raggio": "Fino a circa 256 R☉ (più di 1 UA)",
+"lum": "Fino a circa 2.700 L☉",
+"text": [
+"Per oltre mezzo miliardo di anni la stella sale lungo il ramo delle giganti rosse (RGB): il raggio cresce di decine e poi di centinaia di volte, la luminosità di migliaia. Il guscio brucia idrogeno e il nucleo di elio, sempre più denso, cresce. La superficie è così estesa e fredda (sotto i 3.500 K) da apparire rossa.",
+"Il vento stellare diventa forte: nel corso di RGB e AGB il Sole perderà circa un terzo della sua massa e, con la gravità più debole, le orbite dei pianeti si allargheranno. Mercurio e Venere saranno inghiottiti. La sorte della Terra è incerta: secondo i modelli migliori (Schröder e Smith, 2008) verrà inghiottita o comunque distrutta, perché l'attrito di marea la farà spiraleggiare verso l'interno più in fretta di quanto la sua orbita si allarghi."
+],
+"terra": "Mercurio e Venere sono distrutti; la Terra probabilmente pure."
+},
+{
+"title": "9. Il Flash dell'Elio",
+"time": "Tempo: circa 12,2 Miliardi di Anni (Durata: Pochi minuti)",
+"sole": "Fra circa 7,6 miliardi di anni da oggi",
+"durata": "Pochi minuti (picco di pochi secondi)",
+"temp": "Nucleo: circa 100 milioni di K",
+"raggio": "Circa 256 R☉, poi la stella si ritira",
+"lum": "Nucleo: fino a 10¹⁰-10¹¹ L☉ per pochi secondi, ma invisibile dall'esterno",
+"text": [
+"Il nucleo di elio, degenerato, raggiunge circa 100 milioni di K e parte la fusione dell'elio in carbonio (processo tre alfa: tre nuclei di elio diventano uno di carbonio), con un po' di ossigeno. In un gas degenerato la pressione non dipende dalla temperatura: il nucleo non si dilata per raffreddarsi e la reazione si autoalimenta in modo esplosivo, finché la temperatura è così alta da togliere la degenerazione.",
+"Per pochi secondi il nucleo produce una potenza paragonabile a quella di un'intera galassia, ma l'energia è assorbita dagli strati sovrastanti e non si vede dall'esterno. Il flash avviene solo nelle stelle da circa 0,5 a 2 masse solari: le più massicce accendono l'elio con gradualità."
+],
+"terra": "Il flash è un evento interno: dal Sistema Solare esterno non si nota nulla."
+},
+{
+"title": "10. Soggiorno nel Ramo Orizzontale",
+"time": "Tempo: circa 12,3 Miliardi di Anni",
+"sole": "Fra circa 7,6 e 7,7 miliardi di anni da oggi",
+"durata": "Circa 100-110 milioni di anni",
+"temp": "Circa 4.800-5.000 K",
+"raggio": "Circa 10 R☉",
+"lum": "Circa 40-50 L☉",
+"text": [
+"Dopo il flash la stella ha un nucleo di elio che brucia in modo stabile, circondato da un guscio di idrogeno. Il raggio si riduce moltissimo, da oltre 200 a circa 10 raggi solari, e la luminosità scende a poche decine di L☉. Nel diagramma H-R le stelle di massa solare si addensano nel «red clump», il grumo rosso; quelle con meno metalli o con maggiore perdita di massa si dispongono sul ramo orizzontale più azzurro.",
+"La fase è breve: circa un centesimo della vita sulla sequenza principale. Giganti più massicce, come Polluce e Capella, accendono l'elio senza flash."
+],
+"terra": "Per breve tempo la zona abitabile potrebbe spostarsi verso le lune di Giove e Saturno (ipotesi di alcuni studi)."
+},
+{
+"title": "11. Ramo Asintotico delle Giganti (AGB)",
+"time": "Tempo: circa 12,4 Miliardi di Anni",
+"sole": "Circa 7,7 miliardi di anni da oggi",
+"durata": "Circa 20-30 milioni di anni",
+"temp": "Circa 3.000-3.700 K",
+"raggio": "Fino a circa 170 R☉",
+"lum": "Fino a circa 5.000 L☉",
+"text": [
+"Quando l'elio nel nucleo finisce, il nucleo inerte di carbonio e ossigeno si contrae e attorno bruciano due gusci: uno di elio e uno di idrogeno. La stella si espande ancora e diventa ancora più luminosa, con un raggio fino a 170 volte quello solare.",
+"Il guscio di elio è instabile: periodicamente si accende in «pulsazioni termiche» che scuotono gli strati esterni. Si forma polvere (silicati, carbonio) e un forte vento: la stella perde massa a ritmi di milionesimi di masse solari all'anno. Le AGB di tipo Mira pulsano con periodi di centinaia di giorni, variando di luce di migliaia di volte."
+],
+"terra": "Se la Terra o i suoi resti sopravvivono, saranno immersi in un vento denso e nella luce di migliaia di Soli."
+},
+{
+"title": "12. Distacco e Formazione della Nebulosa Planetaria",
+"time": "Tempo: circa 12,4 Miliardi di Anni",
+"sole": "Circa 7,8 miliardi di anni da oggi",
+"durata": "Circa 10.000-20.000 anni",
+"temp": "Stella centrale da 30.000 a oltre 100.000 K",
+"raggio": "Stella centrale: circa 0,1-0,2 R☉",
+"lum": "Circa 3.000 L☉, poi in calo",
+"text": [
+"Gli strati esterni, ormai quasi liberi, vengono espulsi e si espandono a 10-30 km/s. Resta il nucleo caldissimo, la futura nana bianca. La sua radiazione ultravioletta ionizza il gas e lo fa brillare in verde-azzurro (ossigeno due volte ionizzato, [O III]) e in rosso (idrogeno e azoto).",
+"Il nome «planetaria» è storico: a Herschel quei dischi parevano pianeti. Le forme (anelli, farfalle, clessidre) hanno simmetrie complesse, forse dovute a stelle compagne o a campi magnetici. La fase dura solo qualche decina di migliaia di anni: un battito di ciglia cosmico. Modelli recenti suggeriscono che anche il Sole potrebbe produrre una nebulosa planetaria, debole ma visibile."
+],
+"terra": "Restano i pianeti esterni, che orbitano più larghi attorno a una stella ormai molto più leggera."
+},
+{
+"title": "13. Consolidamento in Nana Bianca",
+"time": "Tempo: circa 12,4 Miliardi di Anni e oltre",
+"sole": "Dopo circa 7,8 miliardi di anni da oggi",
+"durata": "Circa 1 miliardo di anni per scendere a 10.000 K",
+"temp": "Oltre 100.000 K all'inizio; circa 10.000 K dopo 1 miliardo di anni",
+"raggio": "Circa 0,01 R☉ (come la Terra)",
+"lum": "Da centinaia di L☉ a 10⁻³ L☉",
+"text": [
+"Il nucleo nudo è una nana bianca di carbonio e ossigeno di circa 0,54 masse solari, grande come la Terra. La densità è di circa una tonnellata per cm³ e la gravità superficiale centomila volte quella terrestre. Non ci sono più reazioni nucleari: la stella è sostenuta dalla pressione di degenerazione degli elettroni.",
+"La massa di una nana bianca non può superare circa 1,4 masse solari (limite di Chandrasekhar, calcolato nel 1930 dal giovane Subrahmanyan Chandrasekhar, Nobel 1983): oltre, la stella collassa o esplode come supernova Ia. Nelle atmosfere di molte nane bianche si trovano metalli: sono resti di asteroidi e pianeti sbriciolati dalla marea."
+],
+"terra": "Giove, Saturno, Urano e Nettuno continuano a girare attorno a una piccola stella."
+},
+{
+"title": "14. Fase Calante: Nana Bianca Fredda",
+"time": "Tempo: circa 20-30 Miliardi di Anni",
+"sole": "Decine di miliardi di anni da oggi",
+"durata": "Decine di miliardi di anni",
+"temp": "Da circa 10.000 K a 4.000 K e meno",
+"raggio": "Circa 0,01 R☉ (non cambia)",
+"lum": "Circa 10⁻⁴-10⁻⁵ L☉",
+"text": [
+"Senza fusione la nana bianca si raffredda come un tizzone, irradiando il calore immagazzinato. All'inizio è bianco-azzurra, poi diventa gialla, arancione, rossa. Attenzione: non è una «nana rossa», che è una vera stella (di piccola massa) che brucia idrogeno e vive migliaia di miliardi di anni.",
+"Ad un certo punto il nucleo di carbonio e ossigeno comincia a cristallizzare, come l'acqua che gela: il calore latente rallenta il raffreddamento (osservato con Gaia nel 2019). Poiché il raffreddamento è regolare, le nane bianche più fredde di un ammasso servono come orologio: in M4 hanno dato un'età di circa 12-13 miliardi di anni."
+],
+"terra": "I pochi pianeti rimasti sono mondi bui e gelidi."
+},
+{
+"title": "15. La Tomba Cristallina: Nana Nera",
+"time": "Tempo: oltre 10¹⁵ Anni (un milione di miliardi)",
+"sole": "Oltre un milione di miliardi di anni da oggi",
+"durata": "Per sempre",
+"temp": "Tende alla temperatura dell'Universo (oggi 2,7 K, e in calo)",
+"raggio": "Circa 0,01 R☉",
+"lum": "Praticamente nulla",
+"text": [
+"Una nana nera è una nana bianca così fredda da non emettere luce né calore apprezzabili, in equilibrio con la radiazione di fondo. Secondo le stime ci vogliono oltre 10¹⁵ anni, più di 70.000 volte l'età attuale dell'Universo (13,8 miliardi di anni). Nessuna nana nera esiste ancora: è una previsione teorica.",
+"Il nucleo sarà un cristallo di carbonio e ossigeno. L'immagine del «diamante cosmico» è popolare (la nana bianca BPM 37093, in parte cristallizzata, è stata soprannominata «Lucy», come la canzone dei Beatles «Lucy in the Sky with Diamonds»), ma il materiale non è un vero diamante."
+],
+"terra": "Il Sistema Solare è un cimitero: i pochi corpi restanti si allontanano o vengono espulsi da incontri con altre stelle."
+}
+];
+const visuals = [{ starStyle: { width: '150px', height: '150px', backgroundColor: 'rgba(255, 80, 0, 0.15)', boxShadow: '0 0 80px 40px rgba(255, 80, 0, 0.2)', filter: 'blur(8px)', border: 'none' }, nebulaOpacity: 0.8, nebulaColor: 'radial-gradient(circle, rgba(255,70,0,0.3) 0%, rgba(30,10,80,0.4) 50%, transparent 80%)' },
+{ starStyle: { width: '110px', height: '110px', backgroundColor: 'rgba(255, 120, 30, 0.4)', boxShadow: '0 0 60px 25px rgba(255, 120, 30, 0.5)', filter: 'blur(3px)', border: 'none' }, nebulaOpacity: 0.6, nebulaColor: 'radial-gradient(circle, rgba(255,120,30,0.2) 0%, rgba(50,20,100,0.2) 60%, transparent 80%)' },
+{ starStyle: { width: '70px', height: '70px', backgroundColor: '#ff9000', boxShadow: '0 0 50px 20px #ff6a00, 0 0 80px 30px rgba(255,144,0,0.3)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.3, nebulaColor: 'radial-gradient(circle, rgba(255,106,0,0.15) 0%, transparent 70%)' },
+{ starStyle: { width: '65px', height: '65px', backgroundColor: '#fff6bd', boxShadow: '0 0 40px 15px #ffd000, 0 0 80px 35px #ff8c00', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.1, nebulaColor: 'radial-gradient(circle, rgba(255,208,0,0.1) 0%, transparent 60%)' },
+{ starStyle: { width: '65px', height: '65px', backgroundColor: '#ffffff', boxShadow: '0 0 45px 20px #ffeb60, 0 0 90px 40px rgba(255,235,96,0.4)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.05, nebulaColor: 'radial-gradient(circle, rgba(255,235,96,0.05) 0%, transparent 50%)' },
+{ starStyle: { width: '75px', height: '75px', backgroundColor: '#fff0d0', boxShadow: '0 0 50px 22px #ffc040, 0 0 100px 45px rgba(255,192,64,0.3)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0, nebulaColor: 'none' },
+{ starStyle: { width: '100px', height: '100px', backgroundColor: '#ffb366', boxShadow: '0 0 60px 25px #ff8000, 0 0 110px 50px rgba(255,128,0,0.3)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0, nebulaColor: 'none' },
+{ starStyle: { width: '250px', height: '250px', backgroundColor: '#ff3300', boxShadow: '0 0 90px 40px #ff1100, 0 0 160px 70px rgba(255,51,0,0.5)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.1, nebulaColor: 'radial-gradient(circle, rgba(255,17,0,0.1) 0%, transparent 70%)' },
+{ starStyle: { width: '160px', height: '160px', backgroundColor: '#ffaa44', boxShadow: '0 0 120px 60px #ffdd66, 0 0 200px 90px rgba(255,170,68,0.6)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.2, nebulaColor: 'radial-gradient(circle, rgba(255,221,102,0.15) 0%, transparent 60%)' },
+{ starStyle: { width: '130px', height: '130px', backgroundColor: '#ff7700', boxShadow: '0 0 70px 30px #ff5500, 0 0 130px 55px rgba(255,119,0,0.3)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.1, nebulaColor: 'radial-gradient(circle, rgba(255,85,0,0.08) 0%, transparent 50%)' },
+{ starStyle: { width: '280px', height: '280px', backgroundColor: '#e62e00', boxShadow: '0 0 100px 45px #cc0000, 0 0 200px 85px rgba(230,46,0,0.4)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.3, nebulaColor: 'radial-gradient(circle, rgba(204,0,0,0.2) 0%, transparent 70%)' },
+{ starStyle: { width: '50px', height: '50px', backgroundColor: '#a6f9ff', boxShadow: '0 0 40px 20px #00e1ff, 0 0 80px 40px rgba(255,255,255,0.9)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.9, nebulaColor: 'radial-gradient(circle, rgba(0,225,255,0.4) 0%, rgba(150,0,255,0.3) 35%, rgba(255,50,0,0.2) 65%, transparent 85%)' },
+{ starStyle: { width: '20px', height: '20px', backgroundColor: '#ffffff', boxShadow: '0 0 25px 10px #77ccff, 0 0 50px 20px rgba(255,255,255,0.8)', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0.1, nebulaColor: 'radial-gradient(circle, rgba(119,204,255,0.1) 0%, transparent 50%)' },
+{ starStyle: { width: '22px', height: '22px', backgroundColor: '#801a00', boxShadow: '0 0 15px 4px #ff3300', filter: 'blur(0px)', border: 'none' }, nebulaOpacity: 0, nebulaColor: 'none' },
+{ starStyle: { width: '20px', height: '20px', backgroundColor: '#050508', boxShadow: '0 0 0px transparent', border: '1px solid rgba(255,255,255,0.06)', filter: 'blur(0px)' }, nebulaOpacity: 0, nebulaColor: 'none' }];
+const targetStars = [
+{
+"name": "Nebulosa di Orione (M42)",
+"dist": "circa 1.340 a.l.",
+"type": "Regione di formazione stellare",
+"age": "0,1-3 milioni di anni",
+"ph": 1,
+"vis": "A occhio nudo, spettacolare con il 130 mm",
+"note": "Nella «spada» di Orione nascono migliaia di stelle: al centro c'è il Trapezio."
+},
+{
+"name": "EGG nei Pilastri della Creazione (M16)",
+"dist": "circa 7.000 a.l.",
+"type": "Globuli gaseosi in evaporazione con stelle embrionali",
+"age": "Meno di 1 milione di anni",
+"ph": 1,
+"vis": "M16 con il telescopio; gli EGG solo con Hubble e JWST",
+"note": "Il celebre scatto di Hubble del 1995 mostra le cime dei pilastri."
+},
+{
+"name": "HH 212 (Orione)",
+"dist": "circa 1.300 a.l.",
+"type": "Getto bipolare di una protostella di Classe 0",
+"age": "Circa 40.000 anni",
+"ph": 2,
+"vis": "Solo telescopi professionali",
+"note": "Il getto, lungo circa 0,2 anni luce, ha una simmetria quasi perfetta."
+},
+{
+"name": "L1527 IRS (= IRAS 04368+2557, Toro)",
+"dist": "circa 450 a.l.",
+"type": "Protostella di Classe 0/I con disco visto di taglio",
+"age": "Circa 0,1-0,3 milioni di anni",
+"ph": 2,
+"vis": "Solo telescopi professionali",
+"note": "Il disco è un «panino» scuro con la protostella nascosta al centro."
+},
+{
+"name": "T Tauri (Toro)",
+"dist": "circa 480 a.l.",
+"type": "Prototipo delle stelle pre-sequenza principale",
+"age": "1-3 milioni di anni",
+"ph": 3,
+"vis": "Telescopio (magnitudine circa 10)",
+"note": "Accanto a lei c'è la nebulosa variabile di Hind (NGC 1555)."
+},
+{
+"name": "HL Tauri (Toro)",
+"dist": "circa 450 a.l.",
+"type": "Stella giovanissima con disco ad anelli",
+"age": "Meno di 1 milione di anni",
+"ph": 3,
+"vis": "Solo telescopi professionali",
+"note": "L'immagine di ALMA del 2014 mostrò anelli e fessure: forse pianeti in formazione."
+},
+{
+"name": "V883 Orionis",
+"dist": "circa 1.300 a.l.",
+"type": "Stella di tipo FU Orionis con disco",
+"age": "Meno di 1 milione di anni",
+"ph": 3,
+"vis": "Solo telescopi professionali",
+"note": "ALMA ha misurato la linea di condensazione dell'acqua nel disco."
+},
+{
+"name": "EK Draconis (Drago)",
+"dist": "circa 111 a.l.",
+"type": "Gemella giovane del Sole (G1,5V)",
+"age": "Circa 100 milioni di anni",
+"ph": 4,
+"vis": "Binocolo (magnitudine 7,6); circumpolare da San Giorgio",
+"note": "Mostra come era il Sole appena arrivato in sequenza principale: molto attivo."
+},
+{
+"name": "Pleiadi (M45, Toro)",
+"dist": "circa 440 a.l.",
+"type": "Ammasso aperto giovane",
+"age": "Circa 100-125 milioni di anni",
+"ph": 4,
+"vis": "A occhio nudo, bellissime in binocolo",
+"note": "Stelle di tutte le masse appena arrivate in sequenza principale."
+},
+{
+"name": "Kappa¹ Ceti (Balena)",
+"dist": "circa 30 a.l.",
+"type": "Gemella giovane del Sole (G5V)",
+"age": "Circa 0,4-0,8 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo in cielo buio (magnitudine 4,8)",
+"note": "Il Sole come era circa 4 miliardi di anni fa."
+},
+{
+"name": "Epsilon Eridani",
+"dist": "circa 10,5 a.l.",
+"type": "Nana arancione (K2V)",
+"age": "Circa 0,4-0,8 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo, bassa a sud in inverno",
+"note": "Ha un disco di polveri e almeno un pianeta gigante."
+},
+{
+"name": "Sole",
+"dist": "1 UA = 8,3 minuti-luce",
+"type": "Nana gialla (G2V)",
+"age": "4,57 miliardi di anni",
+"ph": 5,
+"vis": "Mai guardarlo senza filtri",
+"note": "È a metà della sequenza principale."
+},
+{
+"name": "18 Scorpii",
+"dist": "circa 45 a.l.",
+"type": "Gemella del Sole (G2V)",
+"age": "Circa 4,6 miliardi di anni",
+"ph": 5,
+"vis": "Limite dell'occhio nudo (magnitudine 5,5), bassa a sud",
+"note": "Considerata il «gemello solare» più simile al Sole."
+},
+{
+"name": "Tau Ceti",
+"dist": "circa 11,9 a.l.",
+"type": "Nana gialla (G8V)",
+"age": "Circa 5,8 miliardi di anni (4-10)",
+"ph": 5,
+"vis": "A occhio nudo (magnitudine 3,5)",
+"note": "Ha un disco di detriti e possibili pianeti."
+},
+{
+"name": "Alpha Centauri A",
+"dist": "4,37 a.l.",
+"type": "Nana gialla (G2V)",
+"age": "Circa 4,8-5,3 miliardi di anni",
+"ph": 5,
+"vis": "Non visibile dall'Italia (troppo a sud)",
+"note": "È la stella più simile al Sole tra le più vicine."
+},
+{
+"name": "Alpha Centauri B",
+"dist": "4,37 a.l.",
+"type": "Nana arancione (K1V)",
+"age": "Circa 4,8-5,3 miliardi di anni",
+"ph": 5,
+"vis": "Non visibile dall'Italia (troppo a sud)",
+"note": "Fa coppia con A; la terza stella è Proxima."
+},
+{
+"name": "Sirio A",
+"dist": "8,6 a.l.",
+"type": "Stella bianca (A1V), 2,06 masse solari",
+"age": "Circa 0,24 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo: la più brillante del cielo notturno",
+"note": "Vivrà in sequenza principale circa un miliardo di anni."
+},
+{
+"name": "Vega",
+"dist": "25 a.l.",
+"type": "Stella bianca (A0V)",
+"age": "Circa 0,45 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo, quasi allo zenit in estate",
+"note": "Ruota velocissima ed è circondata da un disco di detriti."
+},
+{
+"name": "Altair",
+"dist": "16,7 a.l.",
+"type": "Stella bianca (A7V)",
+"age": "Poche centinaia di milioni di anni",
+"ph": 5,
+"vis": "A occhio nudo",
+"note": "Ruota in circa 9 ore e per questo è visibilmente schiacciata."
+},
+{
+"name": "Fomalhaut",
+"dist": "25 a.l.",
+"type": "Stella bianca (A3V)",
+"age": "Circa 0,44 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo, bassa a sud in autunno",
+"note": "Ha un anello di polveri con una nube, creduta un pianeta."
+},
+{
+"name": "Castore A",
+"dist": "circa 51 a.l.",
+"type": "Stella bianca (A1V)",
+"age": "Circa 0,3 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo; doppia con un piccolo telescopio",
+"note": "In realtà è un sistema di sei stelle."
+},
+{
+"name": "Regolo",
+"dist": "circa 79 a.l.",
+"type": "Stella azzurra (B8 IVn)",
+"age": "Circa 0,1-0,2 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo",
+"note": "Ruota a quasi il 96% della velocità limite."
+},
+{
+"name": "82 Eridani",
+"dist": "circa 19,7 a.l.",
+"type": "Nana gialla (G8V)",
+"age": "Circa 6 miliardi di anni",
+"ph": 5,
+"vis": "Quasi non visibile da San Giorgio (troppo a sud)",
+"note": "Ha un sistema di superterre."
+},
+{
+"name": "Sigma Draconis",
+"dist": "circa 18,8 a.l.",
+"type": "Nana arancione (K0V)",
+"age": "Alcuni miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo (magnitudine 4,7), circumpolare",
+"note": "Povera di metalli rispetto al Sole."
+},
+{
+"name": "61 Virginis",
+"dist": "circa 28 a.l.",
+"type": "Nana gialla (G5V)",
+"age": "Circa 6 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo (magnitudine 4,7)",
+"note": "Ha tre pianeti di massa piccola."
+},
+{
+"name": "Beta Comae Berenices",
+"dist": "circa 30 a.l.",
+"type": "Nana gialla (G0V)",
+"age": "Circa 2-3 miliardi di anni",
+"ph": 5,
+"vis": "A occhio nudo (magnitudine 4,3)",
+"note": "Una stella simile al Sole, ma un po' più calda."
+},
+{
+"name": "HD 209458 (Pegaso)",
+"dist": "circa 159 a.l.",
+"type": "Nana gialla (G0V)",
+"age": "Circa 4 miliardi di anni",
+"ph": 5,
+"vis": "Binocolo (magnitudine 7,6)",
+"note": "Il suo pianeta, Osiris, fu il primo visto in transito (1999)."
+},
+{
+"name": "Delta Pavonis",
+"dist": "circa 20 a.l.",
+"type": "Subgigante gialla (G8IV)",
+"age": "Circa 6-7 miliardi di anni",
+"ph": 6,
+"vis": "Non visibile dall'Italia (troppo a sud)",
+"note": "Un Sole un po' più evoluto di quello attuale."
+},
+{
+"name": "51 Pegasi",
+"dist": "circa 51 a.l.",
+"type": "Nana gialla (G2IV-V)",
+"age": "Alcuni miliardi di anni",
+"ph": 6,
+"vis": "Limite dell'occhio nudo (magnitudine 5,5)",
+"note": "Nel 1995 fu la prima stella di tipo solare con un pianeta (Nobel 2019)."
+},
+{
+"name": "Mu Herculis A",
+"dist": "circa 27 a.l.",
+"type": "Subgigante gialla (G5IV)",
+"age": "Oltre 7 miliardi di anni",
+"ph": 6,
+"vis": "A occhio nudo (magnitudine 3,4)",
+"note": "Una stella vicina alla fine della sequenza principale."
+},
+{
+"name": "Beta Hydri",
+"dist": "circa 24 a.l.",
+"type": "Subgigante gialla (G2IV)",
+"age": "Circa 6,7 miliardi di anni",
+"ph": 7,
+"vis": "Non visibile dall'Italia (troppo a sud)",
+"note": "Il Sole fra qualche miliardo di anni: massa di circa 1,1 M☉."
+},
+{
+"name": "Procione A",
+"dist": "circa 11,5 a.l.",
+"type": "Subgigante (F5 IV-V)",
+"age": "Circa 2 miliardi di anni",
+"ph": 7,
+"vis": "A occhio nudo",
+"note": "Sta lasciando la sequenza principale; è doppia con una nana bianca."
+},
+{
+"name": "Arturo",
+"dist": "circa 37 a.l.",
+"type": "Gigante arancione (K1,5III)",
+"age": "Circa 7 miliardi di anni",
+"ph": 8,
+"vis": "A occhio nudo: la più luminosa del cielo boreale",
+"note": "Raggio circa 25 volte quello solare: il Sole fra 7 miliardi di anni."
+},
+{
+"name": "Aldebaran",
+"dist": "circa 65 a.l.",
+"type": "Gigante rossa (K5III)",
+"age": "Circa 6-7 miliardi di anni",
+"ph": 8,
+"vis": "A occhio nudo, rossa vicino alle Iadi",
+"note": "Raggio circa 44 volte quello solare."
+},
+{
+"name": "Il flash dell'elio",
+"dist": "—",
+"type": "Evento nascosto nel nucleo",
+"age": "Dura pochi minuti",
+"ph": 9,
+"vis": "Mai osservato direttamente",
+"note": "Gli astronomi lo riconoscono solo indirettamente, con la sismologia stellare di Kepler (2011), distinguendo le giganti che hanno superato il flash."
+},
+{
+"name": "Polluce",
+"dist": "circa 34 a.l.",
+"type": "Gigante arancione (K0III)",
+"age": "Circa 0,7 miliardi di anni",
+"ph": 10,
+"vis": "A occhio nudo",
+"note": "Brucia elio nel nucleo; ha un pianeta, Thestias (confermato nel 2021)."
+},
+{
+"name": "Capella",
+"dist": "circa 43 a.l.",
+"type": "Giganti gialle (G8III + G0III)",
+"age": "Circa 0,5 miliardi di anni",
+"ph": 10,
+"vis": "A occhio nudo",
+"note": "Stella doppia: una gigante brucia elio senza flash perché abbastanza massiccia."
+},
+{
+"name": "Mira (Omicron Ceti)",
+"dist": "circa 300 a.l.",
+"type": "Variabile di tipo Mira, AGB",
+"age": "Alcuni miliardi di anni",
+"ph": 11,
+"vis": "A occhio nudo al massimo, poi con binocolo",
+"note": "Periodo di 332 giorni, magnitudine da 2 a 10; la sua coda lunga 13 anni luce fu scoperta nel 2007."
+},
+{
+"name": "CW Leonis (IRC+10216)",
+"dist": "circa 400 a.l.",
+"type": "Stella a carbonio avvolta da polvere",
+"age": "Alcuni miliardi di anni",
+"ph": 11,
+"vis": "Telescopio (molto debole in luce visibile)",
+"note": "È l'oggetto più brillante del cielo a 5 micron, fuori dal Sistema Solare."
+},
+{
+"name": "Nebulosa Boomerang (Centauro)",
+"dist": "circa 5.000 a.l.",
+"type": "Pre-nebulosa planetaria",
+"age": "Espulsione iniziata da circa 1.500 anni",
+"ph": 12,
+"vis": "Non visibile dall'Italia (troppo a sud)",
+"note": "È il luogo naturale più freddo noto: circa 1 K."
+},
+{
+"name": "IRAS 17150-3224 (Nebulosa Zucchero Filato)",
+"dist": "circa 3.600 a.l.",
+"type": "Pre-nebulosa planetaria",
+"age": "Pochi millenni",
+"ph": 12,
+"vis": "Difficile e bassa a sud (Scorpione)",
+"note": "Fotografata dal telescopio Hubble."
+},
+{
+"name": "Nebulosa Manubrio (M27, Volpetta)",
+"dist": "circa 1.200 a.l.",
+"type": "Nebulosa planetaria",
+"age": "Circa 10.000 anni",
+"ph": 12,
+"vis": "Binocolo e telescopio",
+"note": "Fu la prima nebulosa planetaria scoperta (Messier, 1764)."
+},
+{
+"name": "Nebulosa Anello (M57, Lira)",
+"dist": "circa 2.300 a.l.",
+"type": "Nebulosa planetaria",
+"age": "Circa 7.000 anni",
+"ph": 12,
+"vis": "Telescopio (130 mm basta)",
+"note": "Un anello molto simmetrico: in realtà è un guscio visto da un polo."
+},
+{
+"name": "Nebulosa Elica (NGC 7293, Acquario)",
+"dist": "circa 650 a.l.",
+"type": "Nebulosa planetaria",
+"age": "Circa 10.000 anni",
+"ph": 12,
+"vis": "Telescopio, difficile (debole e bassa)",
+"note": "Una delle planetarie più vicine alla Terra."
+},
+{
+"name": "Sirio B",
+"dist": "8,6 a.l.",
+"type": "Nana bianca (DA2)",
+"age": "Raffreddamento di circa 120 milioni di anni",
+"ph": 13,
+"vis": "Telescopio da almeno 150-200 mm e cielo calmo (difficile)",
+"note": "Massa pari a quella del Sole in una sfera grande come la Terra."
+},
+{
+"name": "Procione B",
+"dist": "circa 11,5 a.l.",
+"type": "Nana bianca (DQZ)",
+"age": "Raffreddamento di circa 1,4 miliardi di anni",
+"ph": 13,
+"vis": "Molto difficile da vedere",
+"note": "Compagna debole di Procione A; ha 0,6 masse solari."
+},
+{
+"name": "Stella di van Maanen (Pesci)",
+"dist": "circa 14 a.l.",
+"type": "Nana bianca (DZ)",
+"age": "Alcuni miliardi di anni",
+"ph": 13,
+"vis": "Telescopio (magnitudine 12,4)",
+"note": "È la nana bianca isolata più vicina: l'atmosfera contiene metalli di asteroidi."
+},
+{
+"name": "Stella centrale di M57",
+"dist": "circa 2.300 a.l.",
+"type": "Nana bianca in formazione",
+"age": "Circa 7.000 anni",
+"ph": 13,
+"vis": "Telescopio grande (magnitudine 15,8)",
+"note": "Ha una temperatura di circa 120.000 K."
+},
+{
+"name": "Nane bianche fredde di M4 (Scorpione)",
+"dist": "circa 7.200 a.l.",
+"type": "Nane bianche fredde",
+"age": "Circa 12-13 miliardi di anni",
+"ph": 14,
+"vis": "M4 si vede con il 130 mm; le nane bianche solo con Hubble",
+"note": "Hubble le usò nel 2007 per datare l'ammasso."
+},
+{
+"name": "Nane nere: nessuna esiste ancora",
+"dist": "—",
+"type": "Oggetti teorici",
+"age": "Oltre 10¹⁵ anni",
+"ph": 15,
+"vis": "Impossibile: non esistono",
+"note": "L'Universo è troppo giovane perché sia nata una sola nana nera."
+}
+];
+const romanNumerals = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV"];
+const slider = document.getElementById('timeSlider');
+const star = document.getElementById('starElement');
+const nebula = document.getElementById('nebula');
+let playTimer = null;
+
+function updateSimulation(index) {
+    const ph = phases[index], v = visuals[index];
+    document.getElementById('stepIndicator').innerText = 'Atto ' + romanNumerals[index] + ' di XV';
+    document.getElementById('timeDisplay').innerText = ph.time;
+    document.getElementById('phaseTitle').innerText = ph.title;
+    document.getElementById('phaseChips').innerHTML =
+        '<div class="chip"><b>Per il nostro Sole</b><span>' + ph.sole + '</span></div>' +
+        '<div class="chip"><b>Durata</b><span>' + ph.durata + '</span></div>' +
+        '<div class="chip"><b>Temperatura</b><span>' + ph.temp + '</span></div>' +
+        '<div class="chip"><b>Raggio</b><span>' + ph.raggio + '</span></div>' +
+        '<div class="chip"><b>Luminosità</b><span>' + ph.lum + '</span></div>';
+    document.getElementById('phaseDescription').innerHTML = ph.text.map(p => '<p>' + p + '</p>').join('');
+    document.getElementById('phaseEarth').innerHTML = '<strong>E la Terra?</strong> ' + ph.terra;
+    const s = v.starStyle;
+    star.style.width = s.width; star.style.height = s.height; star.style.backgroundColor = s.backgroundColor;
+    star.style.boxShadow = s.boxShadow; star.style.filter = s.filter; star.style.border = s.border;
+    nebula.style.opacity = v.nebulaOpacity; nebula.style.background = v.nebulaColor;
+    slider.value = index;
+}
+function goPhase(i) { updateSimulation(Math.max(0, Math.min(14, i))); }
+slider.addEventListener('input', e => { stopPlay(); updateSimulation(parseInt(e.target.value)); });
+document.getElementById('btnPrev').onclick = () => { stopPlay(); goPhase(parseInt(slider.value) - 1); };
+document.getElementById('btnNext').onclick = () => { stopPlay(); goPhase(parseInt(slider.value) + 1); };
+function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; const b = document.getElementById('btnPlay'); b.textContent = '▶ Riproduci'; b.classList.remove('active'); } }
+document.getElementById('btnPlay').onclick = function () {
+    if (playTimer) { stopPlay(); return; }
+    if (parseInt(slider.value) >= 14) goPhase(0);
+    this.textContent = '■ Ferma'; this.classList.add('active');
+    playTimer = setInterval(() => { const i = parseInt(slider.value); if (i >= 14) stopPlay(); else goPhase(i + 1); }, 4500);
+};
+
+function renderStars() {
+    const q = document.getElementById('searchBox').value.trim().toLowerCase();
+    const f = document.getElementById('phaseFilter').value;
+    const grid = document.getElementById('starsGrid');
+    grid.innerHTML = '';
+    let n = 0;
+    targetStars.forEach(s => {
+        if (f !== 'all' && String(s.ph) !== f) return;
+        if (q && (s.name + ' ' + s.type).toLowerCase().indexOf(q) < 0) return;
+        n++;
+        const card = document.createElement('div');
+        card.className = 'star-card';
+        card.innerHTML = '<div><div class="star-name">' + s.name + '</div>' +
+            '<div class="star-detail">Distanza: <strong>' + s.dist + '</strong></div>' +
+            '<div class="star-detail">Tipo: <em>' + s.type + '</em></div>' +
+            '<div class="star-detail">Età stimata: <strong>' + s.age + '</strong></div>' +
+            '<div class="vis-line">Da San Giorgio: ' + s.vis + '</div>' +
+            '<div class="star-note">' + s.note + '</div></div>' +
+            '<div><div class="star-phase-badge">Fase ' + s.ph + ': ' + phases[s.ph - 1].title.replace(/^\d+\.\s*/, '') + '</div><br>' +
+            '<button class="go-btn" data-ph="' + (s.ph - 1) + '">Vedi la fase nel simulatore ↑</button></div>';
+        grid.appendChild(card);
+    });
+    if (!n) grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#8a8ab0">Nessun oggetto trovato.</p>';
+    grid.querySelectorAll('.go-btn').forEach(b => b.onclick = () => { stopPlay(); goPhase(parseInt(b.dataset.ph)); document.getElementById('viewport').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+}
+(function init() {
+    document.getElementById('starCount').textContent = targetStars.length;
+    const sel = document.getElementById('phaseFilter');
+    sel.innerHTML = '<option value="all">Tutte le fasi</option>' + phases.map((p, i) => '<option value="' + (i + 1) + '">' + p.title + '</option>').join('');
+    sel.onchange = renderStars;
+    document.getElementById('searchBox').oninput = renderStars;
+    renderStars();
+    updateSimulation(0);
+})();
+</script>
+</body>
+</html>
